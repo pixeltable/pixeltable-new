@@ -30,8 +30,8 @@ cd myapp
 Install dependencies and run:
 
 ```bash
-pip install pixeltable
-pxt serve my-service
+uv add pixeltable
+uv run pxt serve my-service
 ```
 
 Open your browser and go to `http://localhost:8000/docs` to see your API docs.

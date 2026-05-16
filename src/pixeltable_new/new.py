@@ -16,17 +16,17 @@ SKIP_FILES = {"uv.lock", ".DS_Store"}
 
 NEXT_STEPS: dict[str, list[str]] = {
     "serving": [
-        "pip install pixeltable",
-        "pxt serve pipeline",
+        "uv add pixeltable",
+        "uv run pxt serve pipeline",
     ],
     "backend": [
-        "pip install -r requirements.txt  # or: uv sync",
-        "python setup_pixeltable.py",
-        "uvicorn main:app --reload",
+        "uv sync",
+        "uv run python setup_pixeltable.py",
+        "uv run uvicorn main:app --reload",
     ],
     "batch": [
-        "pip install pixeltable",
-        "python pipeline.py",
+        "uv add pixeltable",
+        "uv run python pipeline.py",
     ],
 }
 
