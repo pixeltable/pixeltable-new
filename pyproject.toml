@@ -1,0 +1,59 @@
+[project]
+name = "pixeltable-new"
+version = "0.1.0"
+description = "Create a new Pixeltable project in one command"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Pixeltable, Inc.", email = "contact@pixeltable.com" },
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer>=0.16.0",
+    "rich>=13.7.1",
+    "rich-toolkit>=0.15.1",
+]
+
+[project.scripts]
+pixeltable-new = "pixeltable_new.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pixeltable/pixeltable-new"
+Documentation = "https://docs.pixeltable.com/"
+Repository = "https://github.com/pixeltable/pixeltable-new"
+Issues = "https://github.com/pixeltable/pixeltable-new/issues"
+"Starter Kit" = "https://github.com/pixeltable/pixeltable-starter-kit"
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+strict = true
