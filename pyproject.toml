@@ -39,6 +39,7 @@ Homepage = "https://github.com/pixeltable/pixeltable-new"
 Documentation = "https://docs.pixeltable.com/"
 Repository = "https://github.com/pixeltable/pixeltable-new"
 Issues = "https://github.com/pixeltable/pixeltable-new/issues"
+Changelog = "https://github.com/pixeltable/pixeltable-new/blob/main/release-notes.md"
 "Starter Kit" = "https://github.com/pixeltable/pixeltable-starter-kit"
 
 [build-system]
