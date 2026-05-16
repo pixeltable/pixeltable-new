@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import sys
 from typing import Annotated
 
 import typer
@@ -39,10 +41,43 @@ def new(
         bool,
         typer.Option("--batch", help="Batch processing script with export_sql."),
     ] = False,
+    json_output: Annotated[
+        bool,
+        typer.Option("--json", help="Emit machine-readable JSON output (for AI agents and scripts)."),
+    ] = False,
 ) -> None:
     """Create a new Pixeltable project from the starter kit."""
     pattern = _resolve_pattern(serving, backend, batch)
 
+    if json_output:
+        _run_json(project, pattern)
+    else:
+        _run_rich(project, pattern)
+
+
+def _run_json(project: str | None, pattern: str) -> None:
+    """Machine-readable JSON output for agents and scripts."""
+    try:
+        dest, written = scaffold(project, pattern)
+    except (FileExistsError, ValueError, RuntimeError) as e:
+        print(json.dumps({"status": "error", "message": str(e)}), file=sys.stderr)
+        raise typer.Exit(code=1) from e
+
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "project": str(dest),
+                "pattern": pattern,
+                "files": sorted(written),
+                "next_steps": (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, []),
+            }
+        )
+    )
+
+
+def _run_rich(project: str | None, pattern: str) -> None:
+    """Human-friendly rich-formatted output."""
     with get_rich_toolkit() as toolkit:
         toolkit.print_title("Creating a new Pixeltable project", tag="Pixeltable")
         toolkit.print_line()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import pathlib
 
 import pytest
@@ -92,3 +93,23 @@ class TestCLI:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "starter kit" in result.output.lower() or "pixeltable" in result.output.lower()
+
+    @pytest.mark.parametrize("pattern", PATTERNS)
+    def test_cli_json_output(self, pattern: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--json flag emits machine-readable JSON for agents."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, [f"json-{pattern}", f"--{pattern}", "--json"])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["status"] == "ok"
+        assert data["pattern"] == pattern
+        assert isinstance(data["files"], list)
+        assert len(data["files"]) > 0
+        assert isinstance(data["next_steps"], list)
+
+    def test_cli_json_error(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--json errors go to stderr as JSON."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "taken").mkdir()
+        result = runner.invoke(app, ["taken", "--json"])
+        assert result.exit_code == 1
