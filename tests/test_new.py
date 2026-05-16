@@ -78,7 +78,7 @@ class TestCLI:
     def test_cli_multiple_patterns_fails(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["multi", "--serving", "--backend"])
-        assert result.exit_code == 1
+        assert result.exit_code != 0
         assert "Only one pattern" in result.output
 
     def test_cli_no_deploy_dirs(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:

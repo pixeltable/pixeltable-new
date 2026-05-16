@@ -1,6 +1,6 @@
 [project]
 name = "pixeltable-new"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Create a new Pixeltable project in one command"
 readme = "README.md"
 license = "Apache-2.0"
@@ -12,13 +12,17 @@ requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
+    "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -38,22 +42,66 @@ Issues = "https://github.com/pixeltable/pixeltable-new/issues"
 "Starter Kit" = "https://github.com/pixeltable/pixeltable-starter-kit"
 
 [build-system]
-requires = ["uv_build>=0.8.17,<0.9.0"]
-build-backend = "uv_build"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+version = { source = "file", path = "src/pixeltable_new/__init__.py" }
+distribution = true
 
 [dependency-groups]
 dev = [
     "pytest>=8.0.0",
+    "coverage[toml]>=7.6.1",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--strict-config",
+    "--strict-markers",
+]
+xfail_strict = true
+junit_family = "xunit2"
+
+[tool.coverage.run]
+parallel = true
+data_file = "coverage/.coverage"
+source = [
+    "src/pixeltable_new",
+    "tests",
+]
+dynamic_context = "test_function"
+relative_files = true
+
+[tool.coverage.report]
+show_missing = true
+sort = "-Cover"
+
+[tool.coverage.html]
+show_contexts = true
+
+[tool.mypy]
+strict = true
 
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "C4", "UP"]
-ignore = ["E501"]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long
+    "B008",  # do not perform function calls in argument defaults
+]
 
-[tool.mypy]
-strict = true
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
