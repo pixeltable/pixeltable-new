@@ -1,4 +1,4 @@
-"""Core scaffolding logic: fetch starter-kit tarball, extract a pattern, write to disk."""
+"""Core scaffolding logic: fetch starter-kit tarball, extract a pattern or template, write to disk."""
 
 from __future__ import annotations
 
@@ -11,6 +11,24 @@ import urllib.request
 STARTER_KIT_TARBALL = "https://github.com/pixeltable/pixeltable-starter-kit/archive/refs/heads/main.tar.gz"
 
 PATTERNS = ("serving", "backend", "batch")
+
+TEMPLATES = (
+    "multimodal-rag",
+    "video-intel",
+    "agent",
+    "audio-intel",
+    "content-pipeline",
+    "data-lab",
+)
+
+TEMPLATE_DESCRIPTIONS: dict[str, str] = {
+    "multimodal-rag": "Unified knowledge base -- upload docs, images, video, audio; search across all",
+    "video-intel": "Video intelligence pipeline -- frames, transcription, object detection, search",
+    "agent": "Persistent multimodal agent -- durable memory, tool calling, MCP",
+    "audio-intel": "Audio/podcast intelligence -- transcription, diarization, summarization, search",
+    "content-pipeline": "Enterprise media processing -- ingest from S3, process, export to your DB",
+    "data-lab": "ML dataset engineering -- auto-annotate, curate, version, export to PyTorch",
+}
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
 
@@ -28,6 +46,15 @@ NEXT_STEPS: dict[str, list[str]] = {
         "uv add pixeltable",
         "uv run python pipeline.py",
     ],
+}
+
+TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
+    "multimodal-rag": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve kb"],
+    "video-intel": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve videointel"],
+    "agent": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve agent"],
+    "audio-intel": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve audiointel"],
+    "content-pipeline": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve pipeline"],
+    "data-lab": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve datalab"],
 }
 
 
@@ -100,14 +127,23 @@ def substitute_project_name(dest: pathlib.Path, project_name: str) -> None:
 
 
 def scaffold(
-    project_name: str | None, pattern: str, tarball_url: str = STARTER_KIT_TARBALL
+    project_name: str | None,
+    pattern: str,
+    tarball_url: str = STARTER_KIT_TARBALL,
+    template: str | None = None,
 ) -> tuple[pathlib.Path, list[str]]:
     """Scaffold a new Pixeltable project.
 
     Returns (project_path, list_of_files_written).
     """
-    if pattern not in PATTERNS:
-        raise ValueError(f"Unknown pattern {pattern!r}. Choose from: {', '.join(PATTERNS)}")
+    if template:
+        if template not in TEMPLATES:
+            raise ValueError(f"Unknown template {template!r}. Choose from: {', '.join(TEMPLATES)}")
+        extract_prefix = f"templates/{template}"
+    else:
+        if pattern not in PATTERNS:
+            raise ValueError(f"Unknown pattern {pattern!r}. Choose from: {', '.join(PATTERNS)}")
+        extract_prefix = pattern
 
     if project_name:
         dest = (pathlib.Path.cwd() / project_name).resolve()
@@ -120,12 +156,11 @@ def scaffold(
     dest.mkdir(parents=True, exist_ok=True)
 
     tarball_bytes = fetch_tarball(tarball_url)
-    written = extract_pattern(tarball_bytes, pattern, dest)
+    written = extract_pattern(tarball_bytes, extract_prefix, dest)
 
     if not written:
-        raise RuntimeError(
-            f"No files found for pattern {pattern!r} in the starter kit. The starter kit may have been restructured."
-        )
+        label = f"template {template!r}" if template else f"pattern {pattern!r}"
+        raise RuntimeError(f"No files found for {label} in the starter kit. The starter kit may have been restructured.")
 
     substitute_project_name(dest, dest.name)
 

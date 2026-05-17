@@ -36,23 +36,51 @@ uv run pxt serve my-service
 
 Open your browser and go to `http://localhost:8000/docs` to see your API docs.
 
-### Choose a pattern
+### Application Templates
 
-Pixeltable supports three deployment patterns:
+Full-stack vertical apps that replace paid SaaS -- each is one `schema.py` + `pyproject.toml`:
+
+```bash
+uvx pixeltable-new --template multimodal-rag my-kb        # your own Vectara
+uvx pixeltable-new --template video-intel my-video-app    # your own Twelve Labs
+uvx pixeltable-new --template agent my-agent              # your own Mem0
+uvx pixeltable-new --template audio-intel my-podcast-app  # your own Otter.ai
+uvx pixeltable-new --template content-pipeline my-pipe    # your own Cloudinary AI
+uvx pixeltable-new --template data-lab my-dataset         # your own Roboflow
+```
+
+| Template | What it replaces | What you get |
+|---|---|---|
+| `multimodal-rag` | Vectara, Cohere RAG | Unified search across docs, images, video, audio |
+| `video-intel` | Twelve Labs, Valossa | Declarative video pipeline: frames, transcription, detection, search |
+| `agent` | Mem0, MemGPT | Persistent agent with durable memory, tools, MCP |
+| `audio-intel` | Otter.ai, AssemblyAI | Transcription, diarization, summarization, semantic search |
+| `content-pipeline` | Cloudinary AI | Ingest from S3, process all modalities, export to your DB |
+| `data-lab` | Labelbox, Roboflow | Auto-annotate, curate, version, export to PyTorch |
+
+### Structural Patterns
+
+API/pipeline scaffolds for when you want to wire Pixeltable into your own architecture:
 
 ```bash
 uvx pixeltable-new myapp --serving    # Declarative API from TOML config (default)
-uvx pixeltable-new myapp --backend    # Full FastAPI + React web app
+uvx pixeltable-new myapp --backend    # FastAPI API scaffold (headless)
 uvx pixeltable-new myapp --batch      # Batch processing script
 ```
 
 | Pattern | What you get | Run with |
 |---|---|---|
 | `--serving` (default) | `schema.py` + `pyproject.toml` routes | `pxt serve <service-name>` |
-| `--backend` | FastAPI app + Pixeltable schema + routers | `uvicorn main:app --reload` |
+| `--backend` | FastAPI API scaffold + Pixeltable schema + routers | `uvicorn main:app --reload` |
 | `--batch` | Ingest script + `export_sql` | `python pipeline.py` |
 
-Templates are fetched from the [Pixeltable Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit). For the full reference with Docker, Helm, Terraform, and cloud deploy configs, clone the starter kit directly.
+### Discovery
+
+```bash
+uvx pixeltable-new --list    # show all patterns + templates
+```
+
+All content is fetched from the [Pixeltable Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit). For the full reference with Docker, Helm, Terraform, and cloud deploy configs, clone the starter kit directly.
 
 ### Existing directory
 
