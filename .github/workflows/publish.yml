@@ -1,5 +1,14 @@
 name: Publish to PyPI
 
+# Triggered by pushing a version tag: git tag v0.3.0 && git push --tags
+#
+# SETUP (one-time):
+# 1. PyPI: pypi.org/manage/project/pixeltable-new/settings/publishing/
+#    Add trusted publisher: owner=pixeltable, repo=pixeltable-new,
+#    workflow=publish.yml, environment=pypi
+# 2. GitHub: github.com/pixeltable/pixeltable-new/settings/environments
+#    Create environment named "pypi"
+
 on:
   push:
     tags:
