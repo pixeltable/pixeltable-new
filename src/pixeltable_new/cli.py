@@ -99,7 +99,7 @@ def _run_list(json_output: bool) -> None:
         for name, desc in patterns_info.items():
             toolkit.print(f"  [cyan]{name:20s}[/cyan] {desc}")
         toolkit.print_line()
-        toolkit.print("[bold]Application Templates[/bold] (full-stack vertical apps):")
+        toolkit.print("[bold]Application Templates[/bold] (each builds on a pattern above):")
         for name in TEMPLATES:
             toolkit.print(f"  [cyan]{name:20s}[/cyan] {TEMPLATE_DESCRIPTIONS[name]}")
         toolkit.print_line()

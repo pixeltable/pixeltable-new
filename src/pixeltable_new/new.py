@@ -22,12 +22,12 @@ TEMPLATES = (
 )
 
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
-    "multimodal-rag": "Unified knowledge base -- upload docs, images, video, audio; search across all",
-    "video-intel": "Video intelligence pipeline -- frames, transcription, object detection, search",
-    "agent": "Persistent multimodal agent -- durable memory, tool calling, MCP",
-    "audio-intel": "Audio/podcast intelligence -- transcription, diarization, summarization, search",
-    "content-pipeline": "Enterprise media processing -- ingest from S3, process, export to your DB",
-    "data-lab": "ML dataset engineering -- auto-annotate, curate, version, export to PyTorch",
+    "multimodal-rag": "serving + backend · Upload docs, images, video, audio; unified search (schema.py + app.py + UI)",
+    "video-intel": "serving · Declarative video pipeline: frames, transcription, detection, search (pure schema.py)",
+    "agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP (schema.py + app.py + UI)",
+    "audio-intel": "serving + backend · Audio/podcast intelligence: transcription, summarization, search (schema.py + app.py + UI)",
+    "content-pipeline": "batch · Enterprise media processing: ingest from S3, process, export to your DB (schema.py + pipeline.py)",
+    "data-lab": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
 }
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
