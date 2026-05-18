@@ -1,5 +1,12 @@
 # Release Notes
 
+## 0.2.0
+
+- Add `--template` / `-t` flag for application templates: `multimodal-rag`, `video-intel`, `agent`, `audio-intel`, `content-pipeline`, `data-lab`.
+- Add `--list` / `-l` flag to discover all available patterns and templates.
+- Templates are full-stack vertical apps that each replace a paid SaaS (Vectara, Twelve Labs, Mem0, Otter.ai, Cloudinary AI, Roboflow).
+- `--json` output now includes template metadata when using `--template`.
+
 ## 0.1.3
 
 - Add `--json` flag for machine-readable output (agent-friendly).

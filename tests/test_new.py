@@ -9,7 +9,7 @@ import pytest
 from typer.testing import CliRunner
 
 from pixeltable_new.cli import app
-from pixeltable_new.new import PATTERNS, scaffold
+from pixeltable_new.new import PATTERNS, TEMPLATES, scaffold
 
 runner = CliRunner()
 
@@ -49,6 +49,24 @@ class TestScaffoldFunction:
         os.chdir(tmp_path)
         with pytest.raises(ValueError, match="Unknown pattern"):
             scaffold("badpattern", "nonexistent")
+
+    @pytest.mark.parametrize("template", TEMPLATES)
+    def test_scaffold_template(self, template: str, tmp_path: pathlib.Path) -> None:
+        import os
+
+        os.chdir(tmp_path)
+        dest, written = scaffold(f"test-{template}", "serving", template=template)
+        assert dest.exists()
+        assert len(written) > 0
+        assert (dest / "schema.py").exists(), f"schema.py missing for template {template}"
+        assert (dest / "pyproject.toml").exists(), f"pyproject.toml missing for template {template}"
+
+    def test_scaffold_rejects_unknown_template(self, tmp_path: pathlib.Path) -> None:
+        import os
+
+        os.chdir(tmp_path)
+        with pytest.raises(ValueError, match="Unknown template"):
+            scaffold("badtemplate", "serving", template="nonexistent")
 
 
 class TestCLI:
@@ -113,3 +131,46 @@ class TestCLI:
         (tmp_path / "taken").mkdir()
         result = runner.invoke(app, ["taken", "--json"])
         assert result.exit_code == 1
+
+    def test_cli_list(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--list shows patterns and templates."""
+        result = runner.invoke(app, ["--list"])
+        assert result.exit_code == 0, result.output
+        assert "serving" in result.output
+        assert "multimodal-rag" in result.output
+        assert "video-intel" in result.output
+
+    def test_cli_list_json(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--list --json emits structured JSON."""
+        result = runner.invoke(app, ["--list", "--json"])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert "patterns" in data
+        assert "templates" in data
+        assert "multimodal-rag" in data["templates"]
+
+    @pytest.mark.parametrize("template", TEMPLATES)
+    def test_cli_template(self, template: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--template scaffolds the named application template."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, [f"tpl-{template}", "--template", template])
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / f"tpl-{template}" / "schema.py").exists()
+
+    @pytest.mark.parametrize("template", TEMPLATES)
+    def test_cli_template_json(self, template: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--template --json emits machine-readable JSON."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, [f"json-{template}", "--template", template, "--json"])
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["status"] == "ok"
+        assert data["template"] == template
+        assert len(data["files"]) > 0
+
+    def test_cli_template_with_pattern_fails(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """--template cannot be combined with --serving/--backend/--batch."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["bad", "--template", "agent", "--backend"])
+        assert result.exit_code != 0
+        assert "Cannot combine" in result.output
