@@ -118,12 +118,22 @@ def _run_json(project: str | None, pattern: str, template: str | None = None) ->
 
     if template:
         next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(template, [])
-        result = {"status": "ok", "project": str(dest), "template": template, "files": sorted(written),
-                  "next_steps": next_steps}
+        result = {
+            "status": "ok",
+            "project": str(dest),
+            "template": template,
+            "files": sorted(written),
+            "next_steps": next_steps,
+        }
     else:
         next_steps = (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, [])
-        result = {"status": "ok", "project": str(dest), "pattern": pattern, "files": sorted(written),
-                  "next_steps": next_steps}
+        result = {
+            "status": "ok",
+            "project": str(dest),
+            "pattern": pattern,
+            "files": sorted(written),
+            "next_steps": next_steps,
+        }
 
     print(json.dumps(result))
 

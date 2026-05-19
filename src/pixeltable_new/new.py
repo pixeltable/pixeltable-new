@@ -160,7 +160,9 @@ def scaffold(
 
     if not written:
         label = f"template {template!r}" if template else f"pattern {pattern!r}"
-        raise RuntimeError(f"No files found for {label} in the starter kit. The starter kit may have been restructured.")
+        raise RuntimeError(
+            f"No files found for {label} in the starter kit. The starter kit may have been restructured."
+        )
 
     substitute_project_name(dest, dest.name)
 
