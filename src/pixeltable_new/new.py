@@ -49,12 +49,12 @@ NEXT_STEPS: dict[str, list[str]] = {
 }
 
 TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
-    "multimodal-rag": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve kb"],
-    "video-intel": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve videointel"],
-    "agent": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve agent"],
-    "audio-intel": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve audiointel"],
-    "content-pipeline": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve pipeline"],
-    "data-lab": ["uv sync", "uv run python schema.py", "PYTHONPATH=. uv run pxt serve datalab"],
+    "multimodal-rag": ["uv sync", "uv run python schema.py", "uv run pxt serve kb"],
+    "video-intel": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
+    "agent": ["uv sync", "uv run python schema.py", "uv run pxt serve agent"],
+    "audio-intel": ["uv sync", "uv run python schema.py", "uv run pxt serve audiointel"],
+    "content-pipeline": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
+    "data-lab": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
 }
 
 
