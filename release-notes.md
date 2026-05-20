@@ -1,5 +1,16 @@
 # Release Notes
 
+## 0.3.1
+
+- Fix next steps for app.py templates: print `python app.py` instead of `pxt serve <name>`.
+- Add `full-stack-showcase` template to README and examples.
+- Update README template table to show correct entry points per template.
+
+## 0.3.0
+
+- Add `full-stack-showcase` template: complete reference app with Gemini, DETR, Whisper, cross-modal search, React UI, dashboard, and alerting.
+- Templates are now fetched live from the starter kit's `main` branch.
+
 ## 0.2.0
 
 - Add `--template` / `-t` flag for application templates: `multimodal-rag`, `video-intel`, `agent`, `audio-intel`, `content-pipeline`, `data-lab`.
