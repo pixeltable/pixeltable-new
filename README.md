@@ -41,27 +41,24 @@ Open your browser and go to `http://localhost:8000/docs` to see your API docs.
 Vertical apps that each build on a structural pattern — so you already know how to run and deploy them:
 
 ```bash
-uvx pixeltable-new --template multimodal-rag my-kb             # web UI + API
-uvx pixeltable-new --template agent my-agent                   # web UI + API
-uvx pixeltable-new --template audio-intel my-podcast-app       # web UI + API
+uvx pixeltable-new --template knowledge-base my-kb             # web UI + API
+uvx pixeltable-new --template chat-agent my-agent              # web UI + API
+uvx pixeltable-new --template audio-transcription my-podcast   # web UI + API
 uvx pixeltable-new --template full-stack-showcase my-sitewatch # web UI + API (complete reference app)
-uvx pixeltable-new --template video-intel my-video-app         # API only
-uvx pixeltable-new --template content-pipeline my-pipe         # API + batch
-uvx pixeltable-new --template data-lab my-dataset              # API + batch
+uvx pixeltable-new --template video-search my-video-app        # API only
+uvx pixeltable-new --template media-indexing my-pipe           # API + batch
+uvx pixeltable-new --template image-dataset my-dataset         # API + batch
 ```
 
-Templates with a web UI (`app.py`): run `python app.py` to start the server.
-Templates without a UI: run `python schema.py` then `pxt serve <name>`.
-
-| Template | Entry Point | What you get |
+| Template | Pattern | What you get |
 |---|---|---|
-| `multimodal-rag` | `python app.py` | Unified search across docs, images, video, audio. Web UI |
-| `agent` | `python app.py` | Persistent agent with durable memory, tools, MCP. Web UI |
-| `audio-intel` | `python app.py` | Transcription, summarization, semantic search. Web UI |
-| `full-stack-showcase` | `python app.py` | **Complete reference app**: Gemini + DETR + Whisper, cross-modal search, React UI, dashboard, alerting |
-| `video-intel` | `pxt serve videointel` | Declarative video pipeline: frames, transcription, detection, search. API only |
-| `content-pipeline` | `pxt serve pipeline` | Ingest from S3, process all modalities, export to your DB. API + batch |
-| `data-lab` | `pxt serve datalab` | Auto-annotate, curate, version, export to PyTorch. API + batch |
+| `knowledge-base` | serving + backend | Unified search + RAG Q&A across docs, images, video, audio. `schema.py` + `app.py` + web UI |
+| `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP. `schema.py` + `app.py` + web UI |
+| `audio-transcription` | serving + backend | Audio/podcast transcription, summarization, semantic search. `schema.py` + `app.py` + web UI |
+| `full-stack-showcase` | serving + backend | Complete reference app: Gemini + DETR + Whisper, React UI, dashboard. `schema.py` + `app.py` + `routers/` + `frontend/` |
+| `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. Pure `schema.py` |
+| `media-indexing` | batch | Ingest from S3, process all modalities, export to your DB. `schema.py` + `pipeline.py` |
+| `image-dataset` | batch | Auto-annotate, curate, version, export to PyTorch. `schema.py` + `export.py` |
 
 ### Structural Patterns
 

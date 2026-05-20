@@ -49,7 +49,7 @@ def new(
     ] = False,
     template: Annotated[
         str | None,
-        typer.Option("--template", "-t", help="Application template name (e.g. multimodal-rag, video-intel, agent)."),
+        typer.Option("--template", "-t", help="Application template name (e.g. knowledge-base, video-search, chat-agent)."),
     ] = None,
     list_all: Annotated[
         bool,
@@ -105,7 +105,7 @@ def _run_list(json_output: bool) -> None:
         toolkit.print_line()
         toolkit.print("Usage:")
         toolkit.print("  [dim]$[/dim] uvx pixeltable-new --backend myapp")
-        toolkit.print("  [dim]$[/dim] uvx pixeltable-new --template multimodal-rag myapp")
+        toolkit.print("  [dim]$[/dim] uvx pixeltable-new --template knowledge-base myapp")
 
 
 def _run_json(project: str | None, pattern: str, template: str | None = None) -> None:
@@ -118,22 +118,12 @@ def _run_json(project: str | None, pattern: str, template: str | None = None) ->
 
     if template:
         next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(template, [])
-        result = {
-            "status": "ok",
-            "project": str(dest),
-            "template": template,
-            "files": sorted(written),
-            "next_steps": next_steps,
-        }
+        result = {"status": "ok", "project": str(dest), "template": template, "files": sorted(written),
+                  "next_steps": next_steps}
     else:
         next_steps = (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, [])
-        result = {
-            "status": "ok",
-            "project": str(dest),
-            "pattern": pattern,
-            "files": sorted(written),
-            "next_steps": next_steps,
-        }
+        result = {"status": "ok", "project": str(dest), "pattern": pattern, "files": sorted(written),
+                  "next_steps": next_steps}
 
     print(json.dumps(result))
 

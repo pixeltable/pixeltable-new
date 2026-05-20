@@ -137,8 +137,8 @@ class TestCLI:
         result = runner.invoke(app, ["--list"])
         assert result.exit_code == 0, result.output
         assert "serving" in result.output
-        assert "multimodal-rag" in result.output
-        assert "video-intel" in result.output
+        assert "knowledge-base" in result.output
+        assert "video-search" in result.output
 
     def test_cli_list_json(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """--list --json emits structured JSON."""
@@ -147,7 +147,7 @@ class TestCLI:
         data = json.loads(result.output)
         assert "patterns" in data
         assert "templates" in data
-        assert "multimodal-rag" in data["templates"]
+        assert "knowledge-base" in data["templates"]
 
     @pytest.mark.parametrize("template", TEMPLATES)
     def test_cli_template(self, template: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -171,6 +171,6 @@ class TestCLI:
     def test_cli_template_with_pattern_fails(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """--template cannot be combined with --serving/--backend/--batch."""
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(app, ["bad", "--template", "agent", "--backend"])
+        result = runner.invoke(app, ["bad", "--template", "chat-agent", "--backend"])
         assert result.exit_code != 0
         assert "Cannot combine" in result.output

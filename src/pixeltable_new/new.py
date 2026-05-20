@@ -13,22 +13,22 @@ STARTER_KIT_TARBALL = "https://github.com/pixeltable/pixeltable-starter-kit/arch
 PATTERNS = ("serving", "backend", "batch")
 
 TEMPLATES = (
-    "multimodal-rag",
-    "video-intel",
-    "agent",
-    "audio-intel",
-    "content-pipeline",
-    "data-lab",
+    "knowledge-base",
+    "video-search",
+    "chat-agent",
+    "audio-transcription",
+    "media-indexing",
+    "image-dataset",
     "full-stack-showcase",
 )
 
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
-    "multimodal-rag": "serving + backend · Upload docs, images, video, audio; unified search (schema.py + app.py + UI)",
-    "video-intel": "serving · Declarative video pipeline: frames, transcription, detection, search (pure schema.py)",
-    "agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP (schema.py + app.py + UI)",
-    "audio-intel": "serving + backend · Audio/podcast intelligence: transcription, summarization, search (schema.py + app.py + UI)",
-    "content-pipeline": "batch · Enterprise media processing: ingest from S3, process, export to your DB (schema.py + pipeline.py)",
-    "data-lab": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
+    "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (schema.py + app.py + UI)",
+    "video-search": "serving · Declarative video pipeline: frames, transcription, detection, temporal search (pure schema.py)",
+    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP (schema.py + app.py + UI)",
+    "audio-transcription": "serving + backend · Audio/podcast transcription, summarization, semantic search (schema.py + app.py + UI)",
+    "media-indexing": "batch · Enterprise media processing: ingest from S3, process all modalities, export (schema.py + pipeline.py)",
+    "image-dataset": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
     "full-stack-showcase": "serving + backend · Complete reference app: Gemini + DETR + Whisper, cross-modal search, React UI (schema.py + app.py + routers/ + frontend/)",
 }
 
@@ -51,18 +51,18 @@ NEXT_STEPS: dict[str, list[str]] = {
 }
 
 TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
-    "multimodal-rag": ["uv sync", "uv run python app.py"],
-    "agent": ["uv sync", "uv run python app.py"],
-    "audio-intel": ["uv sync", "uv run python app.py"],
+    "knowledge-base": ["uv sync", "uv run python app.py"],
+    "chat-agent": ["uv sync", "uv run python app.py"],
+    "audio-transcription": ["uv sync", "uv run python app.py"],
     "full-stack-showcase": [
         "cp .env.example .env  # add GEMINI_API_KEY",
         "uv sync",
         "uv run python schema.py",
         "uv run python app.py",
     ],
-    "video-intel": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
-    "content-pipeline": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
-    "data-lab": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
+    "video-search": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
+    "media-indexing": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
+    "image-dataset": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
 }
 
 
@@ -168,9 +168,7 @@ def scaffold(
 
     if not written:
         label = f"template {template!r}" if template else f"pattern {pattern!r}"
-        raise RuntimeError(
-            f"No files found for {label} in the starter kit. The starter kit may have been restructured."
-        )
+        raise RuntimeError(f"No files found for {label} in the starter kit. The starter kit may have been restructured.")
 
     substitute_project_name(dest, dest.name)
 
