@@ -19,6 +19,7 @@ TEMPLATES = (
     "audio-intel",
     "content-pipeline",
     "data-lab",
+    "full-stack-showcase",
 )
 
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
@@ -28,6 +29,7 @@ TEMPLATE_DESCRIPTIONS: dict[str, str] = {
     "audio-intel": "serving + backend · Audio/podcast intelligence: transcription, summarization, search (schema.py + app.py + UI)",
     "content-pipeline": "batch · Enterprise media processing: ingest from S3, process, export to your DB (schema.py + pipeline.py)",
     "data-lab": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
+    "full-stack-showcase": "serving + backend · Complete reference app: Gemini + DETR + Whisper, cross-modal search, React UI (schema.py + app.py + routers/ + frontend/)",
 }
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
@@ -55,6 +57,12 @@ TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
     "audio-intel": ["uv sync", "uv run python schema.py", "uv run pxt serve audiointel"],
     "content-pipeline": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
     "data-lab": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
+    "full-stack-showcase": [
+        "cp .env.example .env  # add GEMINI_API_KEY",
+        "uv sync",
+        "uv run python schema.py",
+        "uv run uvicorn app:app --reload",
+    ],
 }
 
 
