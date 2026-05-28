@@ -36,7 +36,8 @@ SKIP_FILES = {"uv.lock", ".DS_Store"}
 
 NEXT_STEPS: dict[str, list[str]] = {
     "serving": [
-        "uv add pixeltable",
+        "uv sync",
+        "uv run python schema.py",
         "uv run pxt serve pipeline",
     ],
     "backend": [
@@ -45,7 +46,7 @@ NEXT_STEPS: dict[str, list[str]] = {
         "uv run uvicorn main:app --reload",
     ],
     "batch": [
-        "uv add pixeltable",
+        "uv sync",
         "uv run python pipeline.py",
     ],
 }
@@ -118,20 +119,31 @@ def extract_pattern(tarball_bytes: bytes, pattern: str, dest: pathlib.Path) -> l
 
 
 def substitute_project_name(dest: pathlib.Path, project_name: str) -> None:
-    """Replace placeholder project name in pyproject.toml and README.md."""
-    for filename in ("pyproject.toml", "README.md"):
-        filepath = dest / filename
-        if not filepath.exists():
-            continue
-        content = filepath.read_text()
-        # The starter kit uses the pattern directory name as the project name
-        for old_name in (
-            "pixeltable-starter-kit-serving",
-            "pixeltable-starter-kit-backend",
-            "pixeltable-starter-kit-batch",
-        ):
-            content = content.replace(old_name, project_name)
-        filepath.write_text(content)
+    """Rewrite the scaffolded pyproject.toml package name to the user's project name.
+
+    Only pyproject.toml is touched (not README.md) so prose that mentions a
+    template name is left intact. The source names below are the actual
+    ``[project] name`` values used by each pattern and template in the starter kit.
+    """
+    filepath = dest / "pyproject.toml"
+    if not filepath.exists():
+        return
+    content = filepath.read_text()
+    source_names = (
+        "pixeltable-starter-kit",
+        "pixeltable-serving",
+        "pixeltable-batch",
+        "pixeltable-chat-agent",
+        "knowledge-base",
+        "audio-transcription",
+        "full-stack-showcase",
+        "video-search",
+        "media-indexing",
+        "image-dataset",
+    )
+    for old_name in source_names:
+        content = content.replace(old_name, project_name)
+    filepath.write_text(content)
 
 
 def scaffold(

@@ -30,8 +30,9 @@ cd myapp
 Install dependencies and run:
 
 ```bash
-uv add pixeltable
-uv run pxt serve my-service
+uv sync
+uv run python schema.py
+uv run pxt serve pipeline
 ```
 
 Open your browser and go to `http://localhost:8000/docs` to see your API docs.

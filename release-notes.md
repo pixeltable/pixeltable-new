@@ -1,5 +1,16 @@
 # Release Notes
 
+## 0.4.1
+
+- Fix default `--serving` next steps: `uv sync` → `uv run python schema.py` → `uv run pxt serve pipeline` (previously `uv add pixeltable` with no schema init, so the served tables did not exist).
+- Fix `--batch` next steps to `uv sync` (the scaffolded project ships full dependencies; `uv add pixeltable` left it incomplete).
+- Fix `substitute_project_name`: it referenced package names that never existed (`pixeltable-starter-kit-serving`, etc.) and was a silent no-op. It now rewrites the real `[project] name` values, scoped to `pyproject.toml` so README prose is left intact.
+- README: fix the default-flow quickstart to match (`uv sync`, `python schema.py`, `pxt serve pipeline`).
+
+## 0.4.0
+
+- Rename all application templates to descriptive use-case names to match the starter kit's `main` branch: `multimodal-rag` → `knowledge-base`, `agent` → `chat-agent`, `audio-intel` → `audio-transcription`, `video-intel` → `video-search`, `content-pipeline` → `media-indexing`, `data-lab` → `image-dataset`.
+
 ## 0.3.1
 
 - Fix next steps for app.py templates: print `python app.py` instead of `pxt serve <name>`.
