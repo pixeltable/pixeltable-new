@@ -81,14 +81,16 @@ class TestScaffoldFunction:
             assert legacy == alias
             assert resolve_template(alias)[0] == canonical
 
-    def test_scaffold_failed_extract_removes_empty_dir(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_scaffold_failed_extract_removes_empty_dir(
+        self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         import os
 
         os.chdir(tmp_path)
 
         def _empty_tarball(_url: str = "") -> bytes:
             buf = io.BytesIO()
-            with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+            with tarfile.open(fileobj=buf, mode="w:gz"):
                 pass
             return buf.getvalue()
 

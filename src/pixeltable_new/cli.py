@@ -129,7 +129,9 @@ def _run_json(project: str | None, pattern: str, template: str | None = None) ->
         raise typer.Exit(code=1) from e
 
     if template:
-        next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(canonical_template or template, [])
+        next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(
+            canonical_template or template, []
+        )
         result = {
             "status": "ok",
             "project": str(dest),
@@ -199,11 +201,7 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
         if project:
             toolkit.print(f"  [dim]$[/dim] cd {project}")
 
-        steps = (
-            TEMPLATE_NEXT_STEPS.get(resolve_template(template)[0], [])
-            if template
-            else NEXT_STEPS.get(pattern, [])
-        )
+        steps = TEMPLATE_NEXT_STEPS.get(resolve_template(template)[0], []) if template else NEXT_STEPS.get(pattern, [])
         for step in steps:
             toolkit.print(f"  [dim]$[/dim] {step}")
 

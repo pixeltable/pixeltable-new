@@ -29,9 +29,13 @@ Releases are published to PyPI automatically when a version tag is pushed.
 ```bash
 # 1. Bump version in src/pixeltable_new/__init__.py
 # 2. Update release-notes.md
-# 3. Commit, tag, push
-git add -A && git commit -m "v0.3.1: description of changes"
-git tag v0.3.1
+# 3. Run the same checks as publish.yml (required before tagging)
+uv run ruff check src/ tests/
+uv run ruff format src/ tests/ --check
+uv run python -m pytest tests/ -v
+# 4. Commit, tag, push
+git add -A && git commit -m "v0.4.2: description of changes"
+git tag v0.4.2
 git push && git push --tags
 ```
 

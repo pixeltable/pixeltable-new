@@ -57,7 +57,7 @@ uvx pixeltable-new --template image-dataset my-dataset         # API + batch
 | `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP. `schema.py` + `app.py` + web UI |
 | `audio-transcription` | serving + backend | Audio/podcast transcription, summarization, semantic search. `schema.py` + `app.py` + web UI |
 | `full-stack-showcase` | serving + backend | Complete reference app: Gemini + DETR + Whisper, React UI, dashboard. `schema.py` + `app.py` + `routers/` + `frontend/` |
-| `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. Pure `schema.py` |
+| `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. Pure `schema.py`. Run: `pxt serve videointel` |
 | `media-indexing` | batch | Ingest from S3, process all modalities, export to your DB. `schema.py` + `pipeline.py` |
 | `image-dataset` | batch | Auto-annotate, curate, version, export to PyTorch. `schema.py` + `export.py` |
 
@@ -81,6 +81,14 @@ uvx pixeltable-new myapp --batch      # Batch processing script
 
 ```bash
 uvx pixeltable-new --list    # show all patterns + templates
+```
+
+**Legacy template names** (deprecated since 0.4.2, still work): `video-intel` → `video-search`, `multimodal-rag` → `knowledge-base`, `agent` → `chat-agent`, `audio-intel` → `audio-transcription`, `content-pipeline` → `media-indexing`, `data-lab` → `image-dataset`. Prefer the canonical names above.
+
+**`video-search` quickstart** after scaffolding:
+
+```bash
+cd my-video-app && uv sync && uv run python schema.py && uv run pxt serve videointel
 ```
 
 All content is fetched from the [Pixeltable Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit). For the full reference with Docker, Helm, Terraform, and cloud deploy configs, clone the starter kit directly.
