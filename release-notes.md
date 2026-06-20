@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.4.2
+
+- Add legacy template aliases (`video-intel` → `video-search`, etc.) so older docs and stale `uvx` caches still scaffold successfully.
+- Remove empty project directories when tarball extract fails (no more blocked retries after a failed `--template`).
+- `--list` shows deprecated alias mappings; CLI prints a deprecation note when an alias is used.
+
 ## 0.4.1
 
 - Fix default `--serving` next steps: `uv sync` → `uv run python schema.py` → `uv run pxt serve pipeline` (previously `uv add pixeltable` with no schema init, so the served tables did not exist).

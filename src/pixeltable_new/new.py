@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import pathlib
+import shutil
 import tarfile
 import urllib.error
 import urllib.request
@@ -21,6 +22,15 @@ TEMPLATES = (
     "image-dataset",
     "full-stack-showcase",
 )
+
+TEMPLATE_ALIASES: dict[str, str] = {
+    "video-intel": "video-search",
+    "multimodal-rag": "knowledge-base",
+    "agent": "chat-agent",
+    "audio-intel": "audio-transcription",
+    "content-pipeline": "media-indexing",
+    "data-lab": "image-dataset",
+}
 
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
     "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (schema.py + app.py + UI)",
@@ -65,6 +75,16 @@ TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
     "media-indexing": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
     "image-dataset": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
 }
+
+
+def resolve_template(name: str) -> tuple[str, str | None]:
+    """Map a template slug (canonical or legacy alias) to the starter-kit folder name."""
+    if name in TEMPLATES:
+        return name, None
+    if name in TEMPLATE_ALIASES:
+        return TEMPLATE_ALIASES[name], name
+    known = sorted(set(TEMPLATES) | set(TEMPLATE_ALIASES))
+    raise ValueError(f"Unknown template {name!r}. Choose from: {', '.join(known)}")
 
 
 def fetch_tarball(url: str = STARTER_KIT_TARBALL) -> bytes:
@@ -151,14 +171,14 @@ def scaffold(
     pattern: str,
     tarball_url: str = STARTER_KIT_TARBALL,
     template: str | None = None,
-) -> tuple[pathlib.Path, list[str]]:
+) -> tuple[pathlib.Path, list[str], str | None]:
     """Scaffold a new Pixeltable project.
 
-    Returns (project_path, list_of_files_written).
+    Returns (project_path, files_written, legacy_alias_or_none).
     """
+    legacy_alias: str | None = None
     if template:
-        if template not in TEMPLATES:
-            raise ValueError(f"Unknown template {template!r}. Choose from: {', '.join(TEMPLATES)}")
+        template, legacy_alias = resolve_template(template)
         extract_prefix = f"templates/{template}"
     else:
         if pattern not in PATTERNS:
@@ -173,17 +193,26 @@ def scaffold(
     if project_name and dest.exists():
         raise FileExistsError(f"Directory {dest.name!r} already exists.")
 
-    dest.mkdir(parents=True, exist_ok=True)
+    created_dest = bool(project_name)
+    if created_dest:
+        dest.mkdir(parents=True, exist_ok=True)
 
-    tarball_bytes = fetch_tarball(tarball_url)
-    written = extract_pattern(tarball_bytes, extract_prefix, dest)
+    try:
+        tarball_bytes = fetch_tarball(tarball_url)
+        written = extract_pattern(tarball_bytes, extract_prefix, dest)
 
-    if not written:
-        label = f"template {template!r}" if template else f"pattern {pattern!r}"
-        raise RuntimeError(
-            f"No files found for {label} in the starter kit. The starter kit may have been restructured."
-        )
+        if not written:
+            label = f"template {template!r}" if template else f"pattern {pattern!r}"
+            raise RuntimeError(
+                f"No files found for {label} in the starter kit. The starter kit may have been restructured."
+            )
 
-    substitute_project_name(dest, dest.name)
-
-    return dest, written
+        substitute_project_name(dest, dest.name)
+        return dest, written, legacy_alias
+    except Exception:
+        if created_dest and dest.is_dir():
+            if not any(dest.iterdir()):
+                dest.rmdir()
+            else:
+                shutil.rmtree(dest)
+        raise

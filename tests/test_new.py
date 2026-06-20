@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import io
 import json
 import pathlib
+import tarfile
 
 import pytest
 from typer.testing import CliRunner
 
 from pixeltable_new.cli import app
-from pixeltable_new.new import PATTERNS, TEMPLATES, scaffold
+from pixeltable_new.new import PATTERNS, TEMPLATE_ALIASES, TEMPLATES, resolve_template, scaffold
 
 runner = CliRunner()
 
@@ -29,7 +31,7 @@ class TestScaffoldFunction:
         import os
 
         os.chdir(tmp_path)
-        dest, written = scaffold(f"test-{pattern}", pattern)
+        dest, written, _legacy = scaffold(f"test-{pattern}", pattern)
         assert dest.exists()
         assert len(written) > 0
         for expected_file in EXPECTED_FILES[pattern]:
@@ -55,7 +57,7 @@ class TestScaffoldFunction:
         import os
 
         os.chdir(tmp_path)
-        dest, written = scaffold(f"test-{template}", "serving", template=template)
+        dest, written, _legacy = scaffold(f"test-{template}", "serving", template=template)
         assert dest.exists()
         assert len(written) > 0
         assert (dest / "schema.py").exists(), f"schema.py missing for template {template}"
@@ -67,6 +69,34 @@ class TestScaffoldFunction:
         os.chdir(tmp_path)
         with pytest.raises(ValueError, match="Unknown template"):
             scaffold("badtemplate", "serving", template="nonexistent")
+
+    def test_scaffold_legacy_alias(self, tmp_path: pathlib.Path) -> None:
+        import os
+
+        os.chdir(tmp_path)
+        for alias, canonical in TEMPLATE_ALIASES.items():
+            dest, written, legacy = scaffold(f"test-{alias}", "serving", template=alias)
+            assert dest.exists()
+            assert len(written) > 0
+            assert legacy == alias
+            assert resolve_template(alias)[0] == canonical
+
+    def test_scaffold_failed_extract_removes_empty_dir(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        import os
+
+        os.chdir(tmp_path)
+
+        def _empty_tarball(_url: str = "") -> bytes:
+            buf = io.BytesIO()
+            with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+                pass
+            return buf.getvalue()
+
+        monkeypatch.setattr("pixeltable_new.new.fetch_tarball", _empty_tarball)
+        target = tmp_path / "should-vanish"
+        with pytest.raises(RuntimeError, match="No files found"):
+            scaffold("should-vanish", "serving", template="video-search")
+        assert not target.exists()
 
 
 class TestCLI:
@@ -139,6 +169,17 @@ class TestCLI:
         assert "serving" in result.output
         assert "knowledge-base" in result.output
         assert "video-search" in result.output
+        assert "video-intel" in result.output
+
+    @pytest.mark.parametrize("alias", list(TEMPLATE_ALIASES))
+    def test_cli_template_legacy_alias(
+        self, alias: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Legacy template aliases scaffold successfully."""
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, [f"alias-{alias}", "--template", alias])
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / f"alias-{alias}" / "schema.py").exists()
 
     def test_cli_list_json(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """--list --json emits structured JSON."""

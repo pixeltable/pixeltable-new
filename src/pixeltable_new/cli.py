@@ -10,9 +10,11 @@ import typer
 
 from pixeltable_new.new import (
     NEXT_STEPS,
+    TEMPLATE_ALIASES,
     TEMPLATE_DESCRIPTIONS,
     TEMPLATE_NEXT_STEPS,
     TEMPLATES,
+    resolve_template,
     scaffold,
 )
 from pixeltable_new.utils.cli import get_rich_toolkit
@@ -104,6 +106,11 @@ def _run_list(json_output: bool) -> None:
         toolkit.print("[bold]Application Templates[/bold] (each builds on a pattern above):")
         for name in TEMPLATES:
             toolkit.print(f"  [cyan]{name:20s}[/cyan] {TEMPLATE_DESCRIPTIONS[name]}")
+        if TEMPLATE_ALIASES:
+            toolkit.print_line()
+            toolkit.print("[dim]Legacy aliases (deprecated):[/dim]")
+            for alias, canonical in sorted(TEMPLATE_ALIASES.items()):
+                toolkit.print(f"  [dim]{alias:20s}[/dim] → {canonical}")
         toolkit.print_line()
         toolkit.print("Usage:")
         toolkit.print("  [dim]$[/dim] uvx pixeltable-new --backend myapp")
@@ -112,21 +119,27 @@ def _run_list(json_output: bool) -> None:
 
 def _run_json(project: str | None, pattern: str, template: str | None = None) -> None:
     """Machine-readable JSON output for agents and scripts."""
+    canonical_template = None
+    if template:
+        canonical_template, _ = resolve_template(template)
     try:
-        dest, written = scaffold(project, pattern, template=template)
+        dest, written, legacy_alias = scaffold(project, pattern, template=template)
     except (FileExistsError, ValueError, RuntimeError) as e:
         print(json.dumps({"status": "error", "message": str(e)}), file=sys.stderr)
         raise typer.Exit(code=1) from e
 
     if template:
-        next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(template, [])
+        next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(canonical_template or template, [])
         result = {
             "status": "ok",
             "project": str(dest),
-            "template": template,
+            "template": canonical_template or template,
             "files": sorted(written),
             "next_steps": next_steps,
         }
+        if legacy_alias:
+            result["legacy_alias"] = legacy_alias
+            result["deprecation"] = f"Template {legacy_alias!r} is deprecated; use {canonical_template!r}."
     else:
         next_steps = (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, [])
         result = {
@@ -166,10 +179,18 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
         toolkit.print("Fetching starter kit...", tag="fetch")
 
         try:
-            dest, written = scaffold(project, pattern, template=template)
+            dest, written, legacy_alias = scaffold(project, pattern, template=template)
         except (FileExistsError, ValueError, RuntimeError) as e:
             toolkit.print(f"[bold red]Error:[/bold red] {e}", tag="error")
             raise typer.Exit(code=1) from e
+
+        if legacy_alias and template:
+            canonical, _ = resolve_template(template)
+            toolkit.print(
+                f"[yellow]Note:[/yellow] Template [cyan]{legacy_alias}[/cyan] is deprecated; "
+                f"use [cyan]{canonical}[/cyan].",
+                tag="info",
+            )
 
         toolkit.print(f"Wrote [green]{len(written)}[/green] files to [cyan]{dest}[/cyan]", tag="done")
 
@@ -178,7 +199,11 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
         if project:
             toolkit.print(f"  [dim]$[/dim] cd {project}")
 
-        steps = TEMPLATE_NEXT_STEPS.get(template, []) if template else NEXT_STEPS.get(pattern, [])
+        steps = (
+            TEMPLATE_NEXT_STEPS.get(resolve_template(template)[0], [])
+            if template
+            else NEXT_STEPS.get(pattern, [])
+        )
         for step in steps:
             toolkit.print(f"  [dim]$[/dim] {step}")
 
