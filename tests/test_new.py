@@ -11,7 +11,14 @@ import pytest
 from typer.testing import CliRunner
 
 from pixeltable_new.cli import app
-from pixeltable_new.new import PATTERNS, TEMPLATE_ALIASES, TEMPLATES, resolve_template, scaffold
+from pixeltable_new.new import (
+    PATTERNS,
+    TEMPLATE_ALIASES,
+    TEMPLATES,
+    resolve_template,
+    scaffold,
+    substitute_project_name,
+)
 
 runner = CliRunner()
 
@@ -217,3 +224,26 @@ class TestCLI:
         result = runner.invoke(app, ["bad", "--template", "chat-agent", "--backend"])
         assert result.exit_code != 0
         assert "Cannot combine" in result.output
+
+
+class TestSubstituteProjectName:
+    """Offline unit tests for precise pyproject `[project] name` substitution."""
+
+    def test_rewrites_only_the_name_declaration(self, tmp_path: pathlib.Path) -> None:
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "video-search"\ndescription = "video-search demo"\n')
+        substitute_project_name(tmp_path, "kb-video-search", "video-search")
+        # Only the name declaration changes; the description keeps its original text.
+        assert pyproject.read_text() == '[project]\nname = "kb-video-search"\ndescription = "video-search demo"\n'
+
+    def test_no_double_replace_for_substring_project_name(self, tmp_path: pathlib.Path) -> None:
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('name = "video-search"\n')
+        substitute_project_name(tmp_path, "kb-video-search", "video-search")
+        assert pyproject.read_text() == 'name = "kb-video-search"\n'
+
+    def test_unknown_source_key_is_noop(self, tmp_path: pathlib.Path) -> None:
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('name = "video-search"\n')
+        substitute_project_name(tmp_path, "myapp", "nonexistent")
+        assert pyproject.read_text() == 'name = "video-search"\n'

@@ -35,7 +35,7 @@ TEMPLATE_ALIASES: dict[str, str] = {
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
     "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (schema.py + app.py + UI)",
     "video-search": "serving · Declarative video pipeline: frames, transcription, detection, temporal search (pure schema.py)",
-    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP (schema.py + app.py + UI)",
+    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP-ready (schema.py + app.py + UI)",
     "audio-transcription": "serving + backend · Audio/podcast transcription, summarization, semantic search (schema.py + app.py + UI)",
     "media-indexing": "batch · Enterprise media processing: ingest from S3, process all modalities, export (schema.py + pipeline.py)",
     "image-dataset": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
@@ -69,11 +69,27 @@ TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
         "cp .env.example .env  # add GEMINI_API_KEY",
         "uv sync",
         "uv run python schema.py",
-        "uv run python app.py",
+        "cd frontend && npm install && npm run build && cd ..  # build the React UI into static/",
+        "uv run python app.py  # UI + API at http://localhost:8000",
     ],
     "video-search": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
     "media-indexing": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
     "image-dataset": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
+}
+
+# Maps each pattern/template to the `[project] name` it uses in the starter kit,
+# so scaffolding rewrites only that exact name (never a substring of another).
+SOURCE_PROJECT_NAMES: dict[str, str] = {
+    "serving": "pixeltable-serving",
+    "backend": "pixeltable-starter-kit",
+    "batch": "pixeltable-batch",
+    "knowledge-base": "knowledge-base",
+    "chat-agent": "pixeltable-chat-agent",
+    "audio-transcription": "audio-transcription",
+    "full-stack-showcase": "full-stack-showcase",
+    "video-search": "video-search",
+    "media-indexing": "media-indexing",
+    "image-dataset": "image-dataset",
 }
 
 
@@ -138,31 +154,19 @@ def extract_pattern(tarball_bytes: bytes, pattern: str, dest: pathlib.Path) -> l
     return written
 
 
-def substitute_project_name(dest: pathlib.Path, project_name: str) -> None:
-    """Rewrite the scaffolded pyproject.toml package name to the user's project name.
+def substitute_project_name(dest: pathlib.Path, project_name: str, source_key: str) -> None:
+    """Rewrite the scaffolded pyproject.toml ``[project] name`` to the user's project name.
 
-    Only pyproject.toml is touched (not README.md) so prose that mentions a
-    template name is left intact. The source names below are the actual
-    ``[project] name`` values used by each pattern and template in the starter kit.
+    Only the exact ``name = "<source>"`` declaration for the scaffolded pattern or
+    template is rewritten (README prose is left intact, and a project name that
+    contains another template's name as a substring can't trigger a double-replace).
     """
     filepath = dest / "pyproject.toml"
-    if not filepath.exists():
+    old_name = SOURCE_PROJECT_NAMES.get(source_key)
+    if not filepath.exists() or old_name is None:
         return
     content = filepath.read_text()
-    source_names = (
-        "pixeltable-starter-kit",
-        "pixeltable-serving",
-        "pixeltable-batch",
-        "pixeltable-chat-agent",
-        "knowledge-base",
-        "audio-transcription",
-        "full-stack-showcase",
-        "video-search",
-        "media-indexing",
-        "image-dataset",
-    )
-    for old_name in source_names:
-        content = content.replace(old_name, project_name)
+    content = content.replace(f'name = "{old_name}"', f'name = "{project_name}"', 1)
     filepath.write_text(content)
 
 
@@ -207,7 +211,7 @@ def scaffold(
                 f"No files found for {label} in the starter kit. The starter kit may have been restructured."
             )
 
-        substitute_project_name(dest, dest.name)
+        substitute_project_name(dest, dest.name, template if template else pattern)
         return dest, written, legacy_alias
     except Exception:
         if created_dest and dest.is_dir():

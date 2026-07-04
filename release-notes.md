@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.4.3
+
+- Fix `full-stack-showcase` next steps: build the React UI (`npm install && npm run build`) before `python app.py`, so the scaffolded reference app serves its UI and API together on one port (previously the UI 404'd until built manually).
+- Make `substitute_project_name` precise: it now rewrites only the scaffolded pattern/template's exact `[project] name` declaration, so a project name that contains another template's name as a substring can no longer double-replace.
+- Describe `chat-agent` tools as "MCP-ready" (MCP is a commented example in the template), matching the starter kit README.
+
 ## 0.4.2
 
 - Add legacy template aliases (`video-intel` → `video-search`, etc.) so older docs and stale `uvx` caches still scaffold successfully.

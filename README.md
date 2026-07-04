@@ -54,7 +54,7 @@ uvx pixeltable-new --template image-dataset my-dataset         # API + batch
 | Template | Pattern | What you get |
 |---|---|---|
 | `knowledge-base` | serving + backend | Unified search + RAG Q&A across docs, images, video, audio. `schema.py` + `app.py` + web UI |
-| `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP. `schema.py` + `app.py` + web UI |
+| `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP-ready. `schema.py` + `app.py` + web UI |
 | `audio-transcription` | serving + backend | Audio/podcast transcription, summarization, semantic search. `schema.py` + `app.py` + web UI |
 | `full-stack-showcase` | serving + backend | Complete reference app: Gemini + DETR + Whisper, React UI, dashboard. `schema.py` + `app.py` + `routers/` + `frontend/` |
 | `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. Pure `schema.py`. Run: `pxt serve videointel` |
@@ -89,6 +89,15 @@ uvx pixeltable-new --list    # show all patterns + templates
 
 ```bash
 cd my-video-app && uv sync && uv run python schema.py && uv run pxt serve videointel
+```
+
+**`full-stack-showcase` quickstart** (build the React UI, then serve UI + API on one port):
+
+```bash
+cd my-sitewatch && cp .env.example .env   # add GEMINI_API_KEY
+uv sync && uv run python schema.py
+cd frontend && npm install && npm run build && cd ..
+uv run python app.py   # UI + API at http://localhost:8000
 ```
 
 All content is fetched from the [Pixeltable Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit). For the full reference with Docker, Helm, Terraform, and cloud deploy configs, clone the starter kit directly.
