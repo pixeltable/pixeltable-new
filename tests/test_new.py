@@ -12,8 +12,10 @@ from typer.testing import CliRunner
 
 from pixeltable_new.cli import app
 from pixeltable_new.new import (
+    NEXT_STEPS,
     PATTERNS,
     TEMPLATE_ALIASES,
+    TEMPLATE_NEXT_STEPS,
     TEMPLATES,
     resolve_template,
     scaffold,
@@ -24,10 +26,18 @@ runner = CliRunner()
 
 
 EXPECTED_FILES: dict[str, list[str]] = {
-    "serving": ["schema.py", "pyproject.toml"],
+    # serving: app.py (new kit) or schema.py (old kit) is checked separately
+    "serving": ["pyproject.toml"],
     "backend": ["main.py", "setup_pixeltable.py", "pyproject.toml", "config.py"],
     "batch": ["pipeline.py", "schema.py", "pyproject.toml"],
 }
+
+
+def assert_application_file(dest: pathlib.Path, *, context: str) -> None:
+    """Live starter-kit main still ships schema.py; the kit PR ships app.py."""
+    has_app = (dest / "app.py").exists()
+    has_schema = (dest / "schema.py").exists()
+    assert has_app or has_schema, f"{context}: expected app.py (new kit) or schema.py (old kit), found neither"
 
 
 class TestScaffoldFunction:
@@ -43,6 +53,8 @@ class TestScaffoldFunction:
         assert len(written) > 0
         for expected_file in EXPECTED_FILES[pattern]:
             assert (dest / expected_file).exists(), f"{expected_file} missing for pattern {pattern}"
+        if pattern == "serving":
+            assert_application_file(dest, context=f"pattern {pattern}")
 
     def test_scaffold_rejects_existing_dir(self, tmp_path: pathlib.Path) -> None:
         import os
@@ -67,7 +79,7 @@ class TestScaffoldFunction:
         dest, written, _legacy = scaffold(f"test-{template}", "serving", template=template)
         assert dest.exists()
         assert len(written) > 0
-        assert (dest / "schema.py").exists(), f"schema.py missing for template {template}"
+        assert_application_file(dest, context=f"template {template}")
         assert (dest / "pyproject.toml").exists(), f"pyproject.toml missing for template {template}"
 
     def test_scaffold_rejects_unknown_template(self, tmp_path: pathlib.Path) -> None:
@@ -119,12 +131,14 @@ class TestCLI:
         assert (tmp_path / "myapp").exists()
         for expected_file in EXPECTED_FILES[pattern]:
             assert (tmp_path / "myapp" / expected_file).exists(), f"{expected_file} missing in CLI output"
+        if pattern == "serving":
+            assert_application_file(tmp_path / "myapp", context=f"CLI pattern {pattern}")
 
     def test_cli_default_pattern_is_serving(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["defaultapp"])
         assert result.exit_code == 0, result.output
-        assert (tmp_path / "defaultapp" / "schema.py").exists()
+        assert_application_file(tmp_path / "defaultapp", context="default serving")
 
     def test_cli_existing_dir_fails(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
@@ -150,6 +164,12 @@ class TestCLI:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "starter kit" in result.output.lower() or "pixeltable" in result.output.lower()
+        assert "TOML config" not in result.output
+        assert (
+            "TableModel" in result.output
+            or "FastAPIRouter" in result.output
+            or "application file" in result.output.lower()
+        )
 
     @pytest.mark.parametrize("pattern", PATTERNS)
     def test_cli_json_output(self, pattern: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -179,6 +199,7 @@ class TestCLI:
         assert "knowledge-base" in result.output
         assert "video-search" in result.output
         assert "video-intel" in result.output
+        assert "TOML config" not in result.output
 
     @pytest.mark.parametrize("alias", list(TEMPLATE_ALIASES))
     def test_cli_template_legacy_alias(
@@ -188,7 +209,7 @@ class TestCLI:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, [f"alias-{alias}", "--template", alias])
         assert result.exit_code == 0, result.output
-        assert (tmp_path / f"alias-{alias}" / "schema.py").exists()
+        assert_application_file(tmp_path / f"alias-{alias}", context=f"alias {alias}")
 
     def test_cli_list_json(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """--list --json emits structured JSON."""
@@ -205,7 +226,7 @@ class TestCLI:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, [f"tpl-{template}", "--template", template])
         assert result.exit_code == 0, result.output
-        assert (tmp_path / f"tpl-{template}" / "schema.py").exists()
+        assert_application_file(tmp_path / f"tpl-{template}", context=f"CLI template {template}")
 
     @pytest.mark.parametrize("template", TEMPLATES)
     def test_cli_template_json(self, template: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -224,6 +245,23 @@ class TestCLI:
         result = runner.invoke(app, ["bad", "--template", "chat-agent", "--backend"])
         assert result.exit_code != 0
         assert "Cannot combine" in result.output
+
+
+class TestNextSteps:
+    """Offline checks for the application-file contract printed after scaffold."""
+
+    def test_serving_uses_schema_and_service_update(self) -> None:
+        assert NEXT_STEPS["serving"] == [
+            "uv sync",
+            "pxt schema update app.py pipeline",
+            "pxt service update app.py pipeline",
+        ]
+
+    def test_no_removed_commands(self) -> None:
+        for steps in [*NEXT_STEPS.values(), *TEMPLATE_NEXT_STEPS.values()]:
+            for step in steps:
+                assert "pxt serve" not in step
+                assert "python schema.py" not in step
 
 
 class TestSubstituteProjectName:

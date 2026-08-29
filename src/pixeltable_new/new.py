@@ -33,13 +33,13 @@ TEMPLATE_ALIASES: dict[str, str] = {
 }
 
 TEMPLATE_DESCRIPTIONS: dict[str, str] = {
-    "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (schema.py + app.py + UI)",
-    "video-search": "serving · Declarative video pipeline: frames, transcription, detection, temporal search (pure schema.py)",
-    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP-ready (schema.py + app.py + UI)",
-    "audio-transcription": "serving + backend · Audio/podcast transcription, summarization, semantic search (schema.py + app.py + UI)",
-    "media-indexing": "batch · Enterprise media processing: ingest from S3, process all modalities, export (schema.py + pipeline.py)",
-    "image-dataset": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
-    "full-stack-showcase": "serving + backend · Complete reference app: Gemini + DETR + Whisper, cross-modal search, React UI (schema.py + app.py + routers/ + frontend/)",
+    "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (application file + FastAPIRouter + UI)",
+    "video-search": "serving · Declarative video pipeline: frames, transcription, detection, temporal search (TableModel + FastAPIRouter)",
+    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP-ready (application file + FastAPIRouter + UI)",
+    "audio-transcription": "serving + backend · Audio/podcast transcription, summarization, semantic search (application file + FastAPIRouter + UI)",
+    "media-indexing": "batch · Enterprise media processing: ingest from S3, process all modalities, export (application file + pipeline.py)",
+    "image-dataset": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (application file + export.py)",
+    "full-stack-showcase": "serving + backend · Complete reference app: Gemini + DETR + Whisper, cross-modal search, React UI (application file + FastAPIRouter + frontend/)",
 }
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
@@ -47,8 +47,8 @@ SKIP_FILES = {"uv.lock", ".DS_Store"}
 NEXT_STEPS: dict[str, list[str]] = {
     "serving": [
         "uv sync",
-        "uv run python schema.py",
-        "uv run pxt serve pipeline",
+        "pxt schema update app.py pipeline",
+        "pxt service update app.py pipeline",
     ],
     "backend": [
         "uv sync",
@@ -62,19 +62,19 @@ NEXT_STEPS: dict[str, list[str]] = {
 }
 
 TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
-    "knowledge-base": ["uv sync", "uv run python app.py"],
-    "chat-agent": ["uv sync", "uv run python app.py"],
-    "audio-transcription": ["uv sync", "uv run python app.py"],
+    "knowledge-base": ["uv sync", "pxt schema update app.py kb", "python app.py"],
+    "chat-agent": ["uv sync", "pxt schema update app.py agent", "python app.py"],
+    "audio-transcription": ["uv sync", "pxt schema update app.py audiointel", "python app.py"],
     "full-stack-showcase": [
         "cp .env.example .env  # add GEMINI_API_KEY",
         "uv sync",
-        "uv run python schema.py",
+        "pxt schema update app.py sitewatch",
         "cd frontend && npm install && npm run build && cd ..  # build the React UI into static/",
-        "uv run python app.py  # UI + API at http://localhost:8000",
+        "python app.py  # UI + API at http://localhost:8000",
     ],
-    "video-search": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
-    "media-indexing": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
-    "image-dataset": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
+    "video-search": ["uv sync", "pxt schema update app.py videointel", "pxt service update app.py videointel"],
+    "media-indexing": ["uv sync", "pxt schema update app.py pipeline", "pxt service update app.py pipeline"],
+    "image-dataset": ["uv sync", "pxt schema update app.py datalab", "pxt service update app.py datalab"],
 }
 
 # Maps each pattern/template to the `[project] name` it uses in the starter kit,

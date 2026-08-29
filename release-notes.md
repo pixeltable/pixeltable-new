@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.5.0
+
+- Align next steps with the application-file contract: `pxt schema update app.py <target>` then `pxt service update` (or `python app.py` when the template is a uvicorn entry that includes the router). `pxt serve` and `[tool.pixeltable.service]` TOML routes are gone.
+- Serving and `--list` copy now describe TableModel / FastAPIRouter application files, not TOML config.
+- Tests accept either `schema.py` (current starter-kit main) or `app.py` (incoming kit) so the live tarball does not break CI during the kit transition.
+
 ## 0.4.3
 
 - Fix `full-stack-showcase` next steps: build the React UI (`npm install && npm run build`) before `python app.py`, so the scaffolded reference app serves its UI and API together on one port (previously the UI 404'd until built manually).

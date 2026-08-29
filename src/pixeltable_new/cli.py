@@ -39,7 +39,7 @@ def new(
     ] = None,
     serving: Annotated[
         bool,
-        typer.Option("--serving", help="Declarative API from TOML config (default)."),
+        typer.Option("--serving", help="Application file with TableModel and FastAPIRouter (default)."),
     ] = False,
     backend: Annotated[
         bool,
@@ -87,7 +87,7 @@ def new(
 def _run_list(json_output: bool) -> None:
     """List all available patterns and templates."""
     patterns_info = {
-        "serving": "Declarative API from TOML config (default)",
+        "serving": "Application file with TableModel and FastAPIRouter (default)",
         "backend": "FastAPI API scaffold (headless, no frontend)",
         "batch": "Batch processing script with export_sql",
     }

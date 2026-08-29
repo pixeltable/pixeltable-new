@@ -9,6 +9,8 @@ Create a new Pixeltable project in one command.
     <img src="https://img.shields.io/pypi/pyversions/pixeltable-new.svg?color=%235533A0" alt="Supported Python versions">
 </a>
 
+Python 3.11+ on Linux, macOS, or Windows.
+
 ## How to use
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) following their guide for your system.
@@ -19,7 +21,7 @@ Run:
 uvx pixeltable-new myapp
 ```
 
-This will create a new project `myapp` with a Pixeltable schema and declarative serving config.
+This will create a new project `myapp` with a Pixeltable application file (`app.py`) that declares `TableModel` tables and `FastAPIRouter` routes.
 
 Enter the directory:
 
@@ -27,19 +29,21 @@ Enter the directory:
 cd myapp
 ```
 
-Install dependencies and run:
+Install dependencies and apply the file. `pxt service update` starts HTTP in the background (`pxt service run` stays in the foreground):
 
 ```bash
 uv sync
-uv run python schema.py
-uv run pxt serve pipeline
+pxt schema update app.py pipeline
+pxt service update app.py pipeline
 ```
 
-Open your browser and go to `http://localhost:8000/docs` to see your API docs.
+The catalog target (`pipeline`) is a directory in the Pixeltable catalog, not a folder on disk. Open `pxt service list` to see the URL, then go to `/docs` for the API.
+
+A project root is `pixeltable.toml` or `pyproject.toml` with `[tool.pixeltable]`. The scaffold includes one. If you copied files by hand, run `pxt init` first.
 
 ### Application Templates
 
-Vertical apps that each build on a structural pattern — so you already know how to run and deploy them:
+Vertical apps that each build on a structural pattern, so you already know how to run and deploy them:
 
 ```bash
 uvx pixeltable-new --template knowledge-base my-kb             # web UI + API
@@ -53,27 +57,27 @@ uvx pixeltable-new --template image-dataset my-dataset         # API + batch
 
 | Template | Pattern | What you get |
 |---|---|---|
-| `knowledge-base` | serving + backend | Unified search + RAG Q&A across docs, images, video, audio. `schema.py` + `app.py` + web UI |
-| `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP-ready. `schema.py` + `app.py` + web UI |
-| `audio-transcription` | serving + backend | Audio/podcast transcription, summarization, semantic search. `schema.py` + `app.py` + web UI |
-| `full-stack-showcase` | serving + backend | Complete reference app: Gemini + DETR + Whisper, React UI, dashboard. `schema.py` + `app.py` + `routers/` + `frontend/` |
-| `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. Pure `schema.py`. Run: `pxt serve videointel` |
-| `media-indexing` | batch | Ingest from S3, process all modalities, export to your DB. `schema.py` + `pipeline.py` |
-| `image-dataset` | batch | Auto-annotate, curate, version, export to PyTorch. `schema.py` + `export.py` |
+| `knowledge-base` | serving + backend | Unified search + RAG Q&A across docs, images, video, audio. Application file + FastAPIRouter + web UI |
+| `chat-agent` | serving + backend | Persistent agent with durable memory, tools, MCP-ready. Application file + FastAPIRouter + web UI |
+| `audio-transcription` | serving + backend | Audio/podcast transcription, summarization, semantic search. Application file + FastAPIRouter + web UI |
+| `full-stack-showcase` | serving + backend | Complete reference app: Gemini + DETR + Whisper, React UI, dashboard. Application file + FastAPIRouter + `frontend/` |
+| `video-search` | serving | Declarative video pipeline: frames, transcription, detection, temporal search. TableModel + FastAPIRouter. Run: `pxt schema update app.py videointel` then `pxt service update app.py videointel` |
+| `media-indexing` | batch | Ingest from S3, process all modalities, export to your DB. Application file + `pipeline.py` |
+| `image-dataset` | batch | Auto-annotate, curate, version, export to PyTorch. Application file + `export.py` |
 
 ### Structural Patterns
 
 API/pipeline scaffolds for when you want to wire Pixeltable into your own architecture:
 
 ```bash
-uvx pixeltable-new myapp --serving    # Declarative API from TOML config (default)
+uvx pixeltable-new myapp --serving    # Application file with TableModel and FastAPIRouter (default)
 uvx pixeltable-new myapp --backend    # FastAPI API scaffold (headless)
 uvx pixeltable-new myapp --batch      # Batch processing script
 ```
 
 | Pattern | What you get | Run with |
 |---|---|---|
-| `--serving` (default) | `schema.py` + `pyproject.toml` routes | `pxt serve <service-name>` |
+| `--serving` (default) | `app.py` with TableModel + FastAPIRouter | `pxt schema update app.py pipeline` then `pxt service update app.py pipeline` |
 | `--backend` | FastAPI API scaffold + Pixeltable schema + routers | `uvicorn main:app --reload` |
 | `--batch` | Ingest script + `export_sql` | `python pipeline.py` |
 
@@ -88,16 +92,16 @@ uvx pixeltable-new --list    # show all patterns + templates
 **`video-search` quickstart** after scaffolding:
 
 ```bash
-cd my-video-app && uv sync && uv run python schema.py && uv run pxt serve videointel
+cd my-video-app && uv sync && pxt schema update app.py videointel && pxt service update app.py videointel
 ```
 
 **`full-stack-showcase` quickstart** (build the React UI, then serve UI + API on one port):
 
 ```bash
 cd my-sitewatch && cp .env.example .env   # add GEMINI_API_KEY
-uv sync && uv run python schema.py
+uv sync && pxt schema update app.py sitewatch
 cd frontend && npm install && npm run build && cd ..
-uv run python app.py   # UI + API at http://localhost:8000
+python app.py   # UI + API at http://localhost:8000
 ```
 
 All content is fetched from the [Pixeltable Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit). For the full reference with Docker, Helm, Terraform, and cloud deploy configs, clone the starter kit directly.
