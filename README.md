@@ -43,8 +43,10 @@ uv run python pipeline.py
 uvx pixeltable-new --list
 ```
 
-RAG, video, agents, and UIs are not downloaded as templates. Install the
-[Pixeltable skill](https://github.com/pixeltable/pixeltable-skill) and add tables in `app.py`.
+RAG, video, agents, and UIs are not downloaded as templates. Copy a DAG from starter-kit
+[`examples/`](https://github.com/pixeltable/pixeltable-starter-kit/tree/main/examples) or
+install the [Pixeltable skill](https://github.com/pixeltable/pixeltable-skill) and add tables
+in `app.py`.
 
 Content is fetched from the [Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit).
 
