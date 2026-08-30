@@ -27,6 +27,14 @@ This writes an application file (`app.py`) with `TableModel` tables and `FastAPI
 `pipeline` is a catalog directory, not a folder on disk. `pxt service list` prints the URL.
 OpenAPI is at `/docs`.
 
+Same file on Cloud:
+
+```bash
+pxt db update pxt://org:db
+pxt schema update app.py pxt://org:db
+pxt service update app.py pxt://org:db
+```
+
 A project root is `pixeltable.toml` or `pyproject.toml` with `[tool.pixeltable]`. The scaffold
 includes one. If you copied files by hand, run `pxt init` first.
 
