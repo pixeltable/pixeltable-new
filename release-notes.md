@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.5.0
+
+- Default scaffold is serving: `pxt schema update app.py pipeline` then `pxt service update`. Batch is `--batch` (schema update, then `python pipeline.py`). `--backend` and `--template` are gone; the skill writes extra tables into `app.py`.
+- `--list` shows serving and batch only. Tests require `app.py`.
+
 ## 0.4.3
 
 - Fix `full-stack-showcase` next steps: build the React UI (`npm install && npm run build`) before `python app.py`, so the scaffolded reference app serves its UI and API together on one port (previously the UI 404'd until built manually).

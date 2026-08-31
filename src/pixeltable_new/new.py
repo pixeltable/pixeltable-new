@@ -1,4 +1,4 @@
-"""Core scaffolding logic: fetch starter-kit tarball, extract a pattern or template, write to disk."""
+"""Core scaffolding logic: fetch starter-kit tarball, extract serving or batch."""
 
 from __future__ import annotations
 
@@ -11,96 +11,41 @@ import urllib.request
 
 STARTER_KIT_TARBALL = "https://github.com/pixeltable/pixeltable-starter-kit/archive/refs/heads/main.tar.gz"
 
-PATTERNS = ("serving", "backend", "batch")
-
-TEMPLATES = (
-    "knowledge-base",
-    "video-search",
-    "chat-agent",
-    "audio-transcription",
-    "media-indexing",
-    "image-dataset",
-    "full-stack-showcase",
-)
-
-TEMPLATE_ALIASES: dict[str, str] = {
-    "video-intel": "video-search",
-    "multimodal-rag": "knowledge-base",
-    "agent": "chat-agent",
-    "audio-intel": "audio-transcription",
-    "content-pipeline": "media-indexing",
-    "data-lab": "image-dataset",
-}
-
-TEMPLATE_DESCRIPTIONS: dict[str, str] = {
-    "knowledge-base": "serving + backend · Upload docs, images, video, audio; unified search + RAG Q&A (schema.py + app.py + UI)",
-    "video-search": "serving · Declarative video pipeline: frames, transcription, detection, temporal search (pure schema.py)",
-    "chat-agent": "serving + backend · Persistent agent with durable memory, tool calling, MCP-ready (schema.py + app.py + UI)",
-    "audio-transcription": "serving + backend · Audio/podcast transcription, summarization, semantic search (schema.py + app.py + UI)",
-    "media-indexing": "batch · Enterprise media processing: ingest from S3, process all modalities, export (schema.py + pipeline.py)",
-    "image-dataset": "batch · ML dataset engineering: auto-annotate, curate, version, export to PyTorch (schema.py + export.py)",
-    "full-stack-showcase": "serving + backend · Complete reference app: Gemini + DETR + Whisper, cross-modal search, React UI (schema.py + app.py + routers/ + frontend/)",
-}
+PATTERNS = ("serving", "batch")
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
 
 NEXT_STEPS: dict[str, list[str]] = {
     "serving": [
         "uv sync",
-        "uv run python schema.py",
-        "uv run pxt serve pipeline",
-    ],
-    "backend": [
-        "uv sync",
-        "uv run python setup_pixeltable.py",
-        "uv run uvicorn main:app --reload",
+        "pxt schema update app.py pipeline",
+        "pxt service update app.py pipeline",
     ],
     "batch": [
         "uv sync",
+        "pxt schema update app.py pipeline",
         "uv run python pipeline.py",
     ],
 }
 
-TEMPLATE_NEXT_STEPS: dict[str, list[str]] = {
-    "knowledge-base": ["uv sync", "uv run python app.py"],
-    "chat-agent": ["uv sync", "uv run python app.py"],
-    "audio-transcription": ["uv sync", "uv run python app.py"],
-    "full-stack-showcase": [
-        "cp .env.example .env  # add GEMINI_API_KEY",
-        "uv sync",
-        "uv run python schema.py",
-        "cd frontend && npm install && npm run build && cd ..  # build the React UI into static/",
-        "uv run python app.py  # UI + API at http://localhost:8000",
-    ],
-    "video-search": ["uv sync", "uv run python schema.py", "uv run pxt serve videointel"],
-    "media-indexing": ["uv sync", "uv run python schema.py", "uv run pxt serve pipeline"],
-    "image-dataset": ["uv sync", "uv run python schema.py", "uv run pxt serve datalab"],
-}
-
-# Maps each pattern/template to the `[project] name` it uses in the starter kit,
-# so scaffolding rewrites only that exact name (never a substring of another).
 SOURCE_PROJECT_NAMES: dict[str, str] = {
     "serving": "pixeltable-serving",
-    "backend": "pixeltable-starter-kit",
     "batch": "pixeltable-batch",
-    "knowledge-base": "knowledge-base",
-    "chat-agent": "pixeltable-chat-agent",
-    "audio-transcription": "audio-transcription",
-    "full-stack-showcase": "full-stack-showcase",
-    "video-search": "video-search",
-    "media-indexing": "media-indexing",
-    "image-dataset": "image-dataset",
 }
 
+_REMOVED_TEMPLATES = (
+    "knowledge-base, chat-agent, audio-transcription, video-search, media-indexing, image-dataset, full-stack-showcase"
+)
 
-def resolve_template(name: str) -> tuple[str, str | None]:
-    """Map a template slug (canonical or legacy alias) to the starter-kit folder name."""
-    if name in TEMPLATES:
-        return name, None
-    if name in TEMPLATE_ALIASES:
-        return TEMPLATE_ALIASES[name], name
-    known = sorted(set(TEMPLATES) | set(TEMPLATE_ALIASES))
-    raise ValueError(f"Unknown template {name!r}. Choose from: {', '.join(known)}")
+
+def reject_template(name: str) -> None:
+    """Templates were removed. Agents write extra tables into app.py."""
+    raise ValueError(
+        f"Template {name!r} is gone. Scaffold serving "
+        f"(uvx pixeltable-new myapp) and add columns in app.py. "
+        f"The pixeltable skill generates RAG, video, and agent tables. "
+        f"Removed names: {_REMOVED_TEMPLATES}."
+    )
 
 
 def fetch_tarball(url: str = STARTER_KIT_TARBALL) -> bytes:
@@ -119,7 +64,6 @@ def extract_pattern(tarball_bytes: bytes, pattern: str, dest: pathlib.Path) -> l
     """
     written: list[str] = []
     with tarfile.open(fileobj=io.BytesIO(tarball_bytes), mode="r:gz") as tf:
-        # tarball root is "pixeltable-starter-kit-main/"
         prefix: str | None = None
         for member in tf.getmembers():
             if prefix is None:
@@ -136,7 +80,6 @@ def extract_pattern(tarball_bytes: bytes, pattern: str, dest: pathlib.Path) -> l
             if any(skip in rel_path for skip in SKIP_FILES):
                 continue
 
-            # skip deploy/ subdirectories (advanced users clone the full kit)
             if rel_path.startswith("deploy/") or rel_path == "deploy":
                 continue
 
@@ -155,12 +98,7 @@ def extract_pattern(tarball_bytes: bytes, pattern: str, dest: pathlib.Path) -> l
 
 
 def substitute_project_name(dest: pathlib.Path, project_name: str, source_key: str) -> None:
-    """Rewrite the scaffolded pyproject.toml ``[project] name`` to the user's project name.
-
-    Only the exact ``name = "<source>"`` declaration for the scaffolded pattern or
-    template is rewritten (README prose is left intact, and a project name that
-    contains another template's name as a substring can't trigger a double-replace).
-    """
+    """Rewrite the scaffolded pyproject.toml ``[project] name`` to the user's project name."""
     filepath = dest / "pyproject.toml"
     old_name = SOURCE_PROJECT_NAMES.get(source_key)
     if not filepath.exists() or old_name is None:
@@ -175,19 +113,16 @@ def scaffold(
     pattern: str,
     tarball_url: str = STARTER_KIT_TARBALL,
     template: str | None = None,
-) -> tuple[pathlib.Path, list[str], str | None]:
+) -> tuple[pathlib.Path, list[str]]:
     """Scaffold a new Pixeltable project.
 
-    Returns (project_path, files_written, legacy_alias_or_none).
+    Returns (project_path, files_written).
     """
-    legacy_alias: str | None = None
     if template:
-        template, legacy_alias = resolve_template(template)
-        extract_prefix = f"templates/{template}"
-    else:
-        if pattern not in PATTERNS:
-            raise ValueError(f"Unknown pattern {pattern!r}. Choose from: {', '.join(PATTERNS)}")
-        extract_prefix = pattern
+        reject_template(template)
+
+    if pattern not in PATTERNS:
+        raise ValueError(f"Unknown pattern {pattern!r}. Choose from: {', '.join(PATTERNS)}")
 
     if project_name:
         dest = (pathlib.Path.cwd() / project_name).resolve()
@@ -203,16 +138,16 @@ def scaffold(
 
     try:
         tarball_bytes = fetch_tarball(tarball_url)
-        written = extract_pattern(tarball_bytes, extract_prefix, dest)
+        written = extract_pattern(tarball_bytes, pattern, dest)
 
         if not written:
-            label = f"template {template!r}" if template else f"pattern {pattern!r}"
             raise RuntimeError(
-                f"No files found for {label} in the starter kit. The starter kit may have been restructured."
+                f"No files found for pattern {pattern!r} in the starter kit. "
+                f"The starter kit may have been restructured."
             )
 
-        substitute_project_name(dest, dest.name, template if template else pattern)
-        return dest, written, legacy_alias
+        substitute_project_name(dest, dest.name, pattern)
+        return dest, written
     except Exception:
         if created_dest and dest.is_dir():
             if not any(dest.iterdir()):

@@ -8,22 +8,14 @@ from typing import Annotated
 
 import typer
 
-from pixeltable_new.new import (
-    NEXT_STEPS,
-    TEMPLATE_ALIASES,
-    TEMPLATE_DESCRIPTIONS,
-    TEMPLATE_NEXT_STEPS,
-    TEMPLATES,
-    resolve_template,
-    scaffold,
-)
+from pixeltable_new.new import NEXT_STEPS, scaffold
 from pixeltable_new.utils.cli import get_rich_toolkit
 
 app = typer.Typer(rich_markup_mode="rich")
 
 
-def _resolve_pattern(serving: bool, backend: bool, batch: bool) -> str:
-    selected = [name for name, flag in [("serving", serving), ("backend", backend), ("batch", batch)] if flag]
+def _resolve_pattern(serving: bool, batch: bool) -> str:
+    selected = [name for name, flag in [("serving", serving), ("batch", batch)] if flag]
     if len(selected) > 1:
         raise typer.BadParameter(f"Only one pattern allowed, got: {', '.join(selected)}")
     return selected[0] if selected else "serving"
@@ -39,25 +31,23 @@ def new(
     ] = None,
     serving: Annotated[
         bool,
-        typer.Option("--serving", help="Declarative API from TOML config (default)."),
-    ] = False,
-    backend: Annotated[
-        bool,
-        typer.Option("--backend", help="FastAPI API scaffold (headless, no frontend)."),
+        typer.Option("--serving", help="Application file with TableModel and FastAPIRouter (default)."),
     ] = False,
     batch: Annotated[
         bool,
-        typer.Option("--batch", help="Batch processing script with export_sql."),
+        typer.Option("--batch", help="Batch processing script. No HTTP."),
     ] = False,
     template: Annotated[
         str | None,
         typer.Option(
-            "--template", "-t", help="Application template name (e.g. knowledge-base, video-search, chat-agent)."
+            "--template",
+            "-t",
+            help="Removed. Scaffold serving and add tables in app.py.",
         ),
     ] = None,
     list_all: Annotated[
         bool,
-        typer.Option("--list", "-l", help="List all available patterns and templates."),
+        typer.Option("--list", "-l", help="List available patterns."),
     ] = False,
     json_output: Annotated[
         bool,
@@ -70,92 +60,69 @@ def new(
         return
 
     if template:
-        if any([serving, backend, batch]):
-            raise typer.BadParameter("Cannot combine --template with --serving/--backend/--batch.")
+        msg = (
+            f"Template {template!r} is gone. Scaffold serving "
+            f"(uvx pixeltable-new myapp) and add columns in app.py. "
+            f"The pixeltable skill generates RAG, video, and agent tables."
+        )
         if json_output:
-            _run_json(project, "serving", template=template)
+            print(json.dumps({"status": "error", "message": msg}), file=sys.stderr)
         else:
-            _run_rich(project, "serving", template=template)
+            with get_rich_toolkit() as toolkit:
+                toolkit.print(f"[bold red]Error:[/bold red] {msg}", tag="error")
+        raise typer.Exit(code=1)
+
+    pattern = _resolve_pattern(serving, batch)
+    if json_output:
+        _run_json(project, pattern)
     else:
-        pattern = _resolve_pattern(serving, backend, batch)
-        if json_output:
-            _run_json(project, pattern)
-        else:
-            _run_rich(project, pattern)
+        _run_rich(project, pattern)
 
 
 def _run_list(json_output: bool) -> None:
-    """List all available patterns and templates."""
+    """List serving and batch."""
     patterns_info = {
-        "serving": "Declarative API from TOML config (default)",
-        "backend": "FastAPI API scaffold (headless, no frontend)",
-        "batch": "Batch processing script with export_sql",
+        "serving": "Application file with TableModel and FastAPIRouter (default)",
+        "batch": "Batch processing script. No HTTP.",
     }
 
     if json_output:
-        print(json.dumps({"patterns": patterns_info, "templates": TEMPLATE_DESCRIPTIONS}))
+        print(json.dumps({"patterns": patterns_info}))
         return
 
     with get_rich_toolkit() as toolkit:
-        toolkit.print_title("Available patterns and templates", tag="Pixeltable")
+        toolkit.print_title("Available patterns", tag="Pixeltable")
         toolkit.print_line()
-        toolkit.print("[bold]Structural Patterns[/bold] (API/pipeline scaffolds):")
         for name, desc in patterns_info.items():
             toolkit.print(f"  [cyan]{name:20s}[/cyan] {desc}")
         toolkit.print_line()
-        toolkit.print("[bold]Application Templates[/bold] (each builds on a pattern above):")
-        for name in TEMPLATES:
-            toolkit.print(f"  [cyan]{name:20s}[/cyan] {TEMPLATE_DESCRIPTIONS[name]}")
-        if TEMPLATE_ALIASES:
-            toolkit.print_line()
-            toolkit.print("[dim]Legacy aliases (deprecated):[/dim]")
-            for alias, canonical in sorted(TEMPLATE_ALIASES.items()):
-                toolkit.print(f"  [dim]{alias:20s}[/dim] → {canonical}")
-        toolkit.print_line()
         toolkit.print("Usage:")
-        toolkit.print("  [dim]$[/dim] uvx pixeltable-new --backend myapp")
-        toolkit.print("  [dim]$[/dim] uvx pixeltable-new --template knowledge-base myapp")
+        toolkit.print("  [dim]$[/dim] uvx pixeltable-new myapp")
+        toolkit.print("  [dim]$[/dim] uvx pixeltable-new myapp --batch")
+        toolkit.print_line()
+        toolkit.print("[dim]Vertical apps: install pixeltable-skill and edit app.py.[/dim]")
 
 
-def _run_json(project: str | None, pattern: str, template: str | None = None) -> None:
+def _run_json(project: str | None, pattern: str) -> None:
     """Machine-readable JSON output for agents and scripts."""
-    canonical_template = None
-    if template:
-        canonical_template, _ = resolve_template(template)
     try:
-        dest, written, legacy_alias = scaffold(project, pattern, template=template)
+        dest, written = scaffold(project, pattern)
     except (FileExistsError, ValueError, RuntimeError) as e:
         print(json.dumps({"status": "error", "message": str(e)}), file=sys.stderr)
         raise typer.Exit(code=1) from e
 
-    if template:
-        next_steps = (["cd " + dest.name] if project else []) + TEMPLATE_NEXT_STEPS.get(
-            canonical_template or template, []
-        )
-        result = {
-            "status": "ok",
-            "project": str(dest),
-            "template": canonical_template or template,
-            "files": sorted(written),
-            "next_steps": next_steps,
-        }
-        if legacy_alias:
-            result["legacy_alias"] = legacy_alias
-            result["deprecation"] = f"Template {legacy_alias!r} is deprecated; use {canonical_template!r}."
-    else:
-        next_steps = (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, [])
-        result = {
-            "status": "ok",
-            "project": str(dest),
-            "pattern": pattern,
-            "files": sorted(written),
-            "next_steps": next_steps,
-        }
-
+    next_steps = (["cd " + dest.name] if project else []) + NEXT_STEPS.get(pattern, [])
+    result = {
+        "status": "ok",
+        "project": str(dest),
+        "pattern": pattern,
+        "files": sorted(written),
+        "next_steps": next_steps,
+    }
     print(json.dumps(result))
 
 
-def _run_rich(project: str | None, pattern: str, template: str | None = None) -> None:
+def _run_rich(project: str | None, pattern: str) -> None:
     """Human-friendly rich-formatted output."""
     with get_rich_toolkit() as toolkit:
         toolkit.print_title("Creating a new Pixeltable project", tag="Pixeltable")
@@ -169,30 +136,15 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
                 tag="warning",
             )
 
-        if template:
-            toolkit.print(f"Template: [cyan]{template}[/cyan]", tag="template")
-            desc = TEMPLATE_DESCRIPTIONS.get(template, "")
-            if desc:
-                toolkit.print(f"  {desc}", tag="info")
-        else:
-            toolkit.print(f"Pattern: [cyan]{pattern}[/cyan]", tag="pattern")
-
+        toolkit.print(f"Pattern: [cyan]{pattern}[/cyan]", tag="pattern")
         toolkit.print_line()
         toolkit.print("Fetching starter kit...", tag="fetch")
 
         try:
-            dest, written, legacy_alias = scaffold(project, pattern, template=template)
+            dest, written = scaffold(project, pattern)
         except (FileExistsError, ValueError, RuntimeError) as e:
             toolkit.print(f"[bold red]Error:[/bold red] {e}", tag="error")
             raise typer.Exit(code=1) from e
-
-        if legacy_alias and template:
-            canonical, _ = resolve_template(template)
-            toolkit.print(
-                f"[yellow]Note:[/yellow] Template [cyan]{legacy_alias}[/cyan] is deprecated; "
-                f"use [cyan]{canonical}[/cyan].",
-                tag="info",
-            )
 
         toolkit.print(f"Wrote [green]{len(written)}[/green] files to [cyan]{dest}[/cyan]", tag="done")
 
@@ -201,8 +153,7 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
         if project:
             toolkit.print(f"  [dim]$[/dim] cd {project}")
 
-        steps = TEMPLATE_NEXT_STEPS.get(resolve_template(template)[0], []) if template else NEXT_STEPS.get(pattern, [])
-        for step in steps:
+        for step in NEXT_STEPS.get(pattern, []):
             toolkit.print(f"  [dim]$[/dim] {step}")
 
         toolkit.print_line()
@@ -211,9 +162,10 @@ def _run_rich(project: str | None, pattern: str, template: str | None = None) ->
             toolkit.print(f"  {f}")
 
         toolkit.print_line()
-        toolkit.print("[bold]Full starter kit with Docker, Helm, Terraform:[/bold]")
+        toolkit.print("[bold]Starter kit:[/bold]")
         toolkit.print("  [blue]https://github.com/pixeltable/pixeltable-starter-kit[/blue]")
-
+        toolkit.print("[bold]Skill (write extra tables):[/bold]")
+        toolkit.print("  [blue]https://github.com/pixeltable/pixeltable-skill[/blue]")
         toolkit.print_line()
         toolkit.print("[dim]Docs: https://docs.pixeltable.com[/dim]")
 
