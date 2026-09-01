@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import pathlib
+import re
 import tarfile
 
 import pytest
@@ -129,12 +130,14 @@ class TestCLI:
     def test_cli_help(self) -> None:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
-        assert "pixeltable" in result.output.lower()
-        assert "TOML config" not in result.output
-        assert "--video" in result.output
-        assert "--batch" not in result.output
-        assert "--backend" not in result.output
-        assert "--serving" not in result.output
+        # Rich splits option names with ANSI codes; strip before matching.
+        text = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
+        assert "pixeltable" in text.lower()
+        assert "TOML config" not in text
+        assert "--video" in text
+        assert "--batch" not in text
+        assert "--backend" not in text
+        assert "--serving" not in text
 
     @pytest.mark.parametrize("pattern", PATTERNS)
     def test_cli_json_output(self, pattern: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
