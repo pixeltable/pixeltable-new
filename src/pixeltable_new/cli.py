@@ -14,11 +14,8 @@ from pixeltable_new.utils.cli import get_rich_toolkit
 app = typer.Typer(rich_markup_mode="rich")
 
 
-def _resolve_pattern(serving: bool, batch: bool) -> str:
-    selected = [name for name, flag in [("serving", serving), ("batch", batch)] if flag]
-    if len(selected) > 1:
-        raise typer.BadParameter(f"Only one pattern allowed, got: {', '.join(selected)}")
-    return selected[0] if selected else "serving"
+def _resolve_pattern(video: bool) -> str:
+    return "video-search" if video else "chat-agent"
 
 
 @app.command()
@@ -29,25 +26,21 @@ def new(
             help="Project name (creates a new directory). Omit to initialize in the current directory.",
         ),
     ] = None,
-    serving: Annotated[
+    video: Annotated[
         bool,
-        typer.Option("--serving", help="Application file with TableModel and FastAPIRouter (default)."),
-    ] = False,
-    batch: Annotated[
-        bool,
-        typer.Option("--batch", help="Batch processing script. No HTTP."),
+        typer.Option("--video", help="Video frames, CLIP search, and image ingest."),
     ] = False,
     template: Annotated[
         str | None,
         typer.Option(
             "--template",
             "-t",
-            help="Removed. Scaffold serving and add tables in app.py.",
+            help="Removed. Scaffold the chat agent and add tables in app.py.",
         ),
     ] = None,
     list_all: Annotated[
         bool,
-        typer.Option("--list", "-l", help="List available patterns."),
+        typer.Option("--list", "-l", help="List available apps."),
     ] = False,
     json_output: Annotated[
         bool,
@@ -61,9 +54,10 @@ def new(
 
     if template:
         msg = (
-            f"Template {template!r} is gone. Scaffold serving "
+            f"Template {template!r} is gone. Scaffold the chat agent "
             f"(uvx pixeltable-new myapp) and add columns in app.py. "
-            f"The pixeltable skill generates RAG, video, and agent tables."
+            f"Video: uvx pixeltable-new myapp --video. "
+            f"The pixeltable skill generates extra tables."
         )
         if json_output:
             print(json.dumps({"status": "error", "message": msg}), file=sys.stderr)
@@ -72,7 +66,7 @@ def new(
                 toolkit.print(f"[bold red]Error:[/bold red] {msg}", tag="error")
         raise typer.Exit(code=1)
 
-    pattern = _resolve_pattern(serving, batch)
+    pattern = _resolve_pattern(video)
     if json_output:
         _run_json(project, pattern)
     else:
@@ -80,10 +74,10 @@ def new(
 
 
 def _run_list(json_output: bool) -> None:
-    """List serving and batch."""
+    """List chat-agent and video-search."""
     patterns_info = {
-        "serving": "Application file with TableModel and FastAPIRouter (default)",
-        "batch": "Batch processing script. No HTTP.",
+        "chat-agent": "Knowledge, memory, and LLM (default)",
+        "video-search": "Video frames, CLIP search, and image ingest",
     }
 
     if json_output:
@@ -91,16 +85,16 @@ def _run_list(json_output: bool) -> None:
         return
 
     with get_rich_toolkit() as toolkit:
-        toolkit.print_title("Available patterns", tag="Pixeltable")
+        toolkit.print_title("Available apps", tag="Pixeltable")
         toolkit.print_line()
         for name, desc in patterns_info.items():
             toolkit.print(f"  [cyan]{name:20s}[/cyan] {desc}")
         toolkit.print_line()
         toolkit.print("Usage:")
         toolkit.print("  [dim]$[/dim] uvx pixeltable-new myapp")
-        toolkit.print("  [dim]$[/dim] uvx pixeltable-new myapp --batch")
+        toolkit.print("  [dim]$[/dim] uvx pixeltable-new myapp --video")
         toolkit.print_line()
-        toolkit.print("[dim]Vertical apps: install pixeltable-skill and edit app.py.[/dim]")
+        toolkit.print("[dim]Add tables in app.py, or install pixeltable-skill.[/dim]")
 
 
 def _run_json(project: str | None, pattern: str) -> None:

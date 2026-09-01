@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.6.0
+
+- Default scaffold is `chat-agent/`: `pxt schema update app.py agent` then `pxt service update`. `--video` copies `video-search/`. `--batch` and `--serving` are gone.
+- `--list` names those two apps. Cloud next-steps are `pxt schema update app.py pxt://...` only. `pxt service` stays local.
+
 ## 0.5.0
 
 - Default scaffold is serving: `pxt schema update app.py pipeline` then `pxt service update`. Batch is `--batch` (schema update, then `python pipeline.py`). `--backend` and `--template` are gone; the skill writes extra tables into `app.py`.

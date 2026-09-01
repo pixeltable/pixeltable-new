@@ -1,4 +1,4 @@
-"""Core scaffolding logic: fetch starter-kit tarball, extract serving or batch."""
+"""Core scaffolding logic: fetch starter-kit tarball, extract chat-agent or video-search."""
 
 from __future__ import annotations
 
@@ -11,26 +11,26 @@ import urllib.request
 
 STARTER_KIT_TARBALL = "https://github.com/pixeltable/pixeltable-starter-kit/archive/refs/heads/main.tar.gz"
 
-PATTERNS = ("serving", "batch")
+PATTERNS = ("chat-agent", "video-search")
 
 SKIP_FILES = {"uv.lock", ".DS_Store"}
 
 NEXT_STEPS: dict[str, list[str]] = {
-    "serving": [
+    "chat-agent": [
         "uv sync",
-        "pxt schema update app.py pipeline",
-        "pxt service update app.py pipeline",
+        "pxt schema update app.py agent",
+        "pxt service update app.py agent",
     ],
-    "batch": [
+    "video-search": [
         "uv sync",
-        "pxt schema update app.py pipeline",
-        "uv run python pipeline.py",
+        "pxt schema update app.py videointel",
+        "pxt service update app.py videointel",
     ],
 }
 
 SOURCE_PROJECT_NAMES: dict[str, str] = {
-    "serving": "pixeltable-serving",
-    "batch": "pixeltable-batch",
+    "chat-agent": "chat-agent",
+    "video-search": "video-search",
 }
 
 _REMOVED_TEMPLATES = (
@@ -41,9 +41,10 @@ _REMOVED_TEMPLATES = (
 def reject_template(name: str) -> None:
     """Templates were removed. Agents write extra tables into app.py."""
     raise ValueError(
-        f"Template {name!r} is gone. Scaffold serving "
+        f"Template {name!r} is gone. Scaffold the chat agent "
         f"(uvx pixeltable-new myapp) and add columns in app.py. "
-        f"The pixeltable skill generates RAG, video, and agent tables. "
+        f"Video: uvx pixeltable-new myapp --video. "
+        f"The pixeltable skill generates extra tables. "
         f"Removed names: {_REMOVED_TEMPLATES}."
     )
 
