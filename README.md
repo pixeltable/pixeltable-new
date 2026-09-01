@@ -15,46 +15,45 @@ Python 3.11+ on Linux, macOS, or Windows.
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) following their guide for your system.
 
+Default is the chat agent (text insert, no API key for `/api/knowledge`):
+
 ```bash
 uvx pixeltable-new myapp
 cd myapp
 uv sync
-pxt schema update app.py pipeline
-pxt service update app.py pipeline
+pxt schema update app.py agent
+pxt service update app.py agent
 ```
 
-This writes an application file (`app.py`) with `TableModel` tables and `FastAPIRouter` routes.
-`pipeline` is a catalog directory, not a folder on disk. `pxt service list` prints the URL.
-OpenAPI is at `/docs`.
+`pxt service list` prints the URL. OpenAPI is at `/docs`. `/ask` needs `ANTHROPIC_API_KEY`.
+
+Video frames, CLIP search, and image ingest:
+
+```bash
+uvx pixeltable-new myapp --video
+cd myapp
+uv sync
+pxt schema update app.py videointel
+pxt service update app.py videointel
+```
 
 Same file on Cloud:
 
 ```bash
-pxt db update pxt://org:db
-pxt schema update app.py pxt://org:db
-pxt service update app.py pxt://org:db
+pxt db create pxt://org:mydb
+pxt schema update app.py pxt://org:mydb
 ```
+
+`pxt service` stays local. Browse and insert on Cloud: dashboard and recipes.
 
 A project root is `pixeltable.toml` or `pyproject.toml` with `[tool.pixeltable]`. The scaffold
 includes one. If you copied files by hand, run `pxt init` first.
-
-No HTTP:
-
-```bash
-uvx pixeltable-new myapp --batch
-cd myapp && uv sync
-pxt schema update app.py pipeline
-uv run python pipeline.py
-```
 
 ```bash
 uvx pixeltable-new --list
 ```
 
-RAG, video, agents, and UIs are not downloaded as templates. Copy a DAG from starter-kit
-[`examples/`](https://github.com/pixeltable/pixeltable-starter-kit/tree/main/examples) or
-install the [Pixeltable skill](https://github.com/pixeltable/pixeltable-skill) and add tables
-in `app.py`.
+Install the [Pixeltable skill](https://github.com/pixeltable/pixeltable-skill) to add tables in `app.py`.
 
 Content is fetched from the [Starter Kit](https://github.com/pixeltable/pixeltable-starter-kit).
 

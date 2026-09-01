@@ -8,13 +8,12 @@ import tarfile
 import pytest
 
 _KIT_FILES = {
-    "pixeltable-starter-kit-main/serving/app.py": "TableModel = None\n",
-    "pixeltable-starter-kit-main/serving/pyproject.toml": '[project]\nname = "pixeltable-serving"\n',
-    "pixeltable-starter-kit-main/serving/pixeltable.toml": "[[pixeltable.database]]\n",
-    "pixeltable-starter-kit-main/batch/app.py": "TableModel = None\n",
-    "pixeltable-starter-kit-main/batch/pipeline.py": 'print("ok")\n',
-    "pixeltable-starter-kit-main/batch/pyproject.toml": '[project]\nname = "pixeltable-batch"\n',
-    "pixeltable-starter-kit-main/batch/pixeltable.toml": "[[pixeltable.database]]\n",
+    "pixeltable-starter-kit-main/chat-agent/app.py": "agent = True\n",
+    "pixeltable-starter-kit-main/chat-agent/pyproject.toml": '[project]\nname = "chat-agent"\n',
+    "pixeltable-starter-kit-main/chat-agent/pixeltable.toml": "[[pixeltable.database]]\n",
+    "pixeltable-starter-kit-main/video-search/app.py": "videointel = True\n",
+    "pixeltable-starter-kit-main/video-search/pyproject.toml": '[project]\nname = "video-search"\n',
+    "pixeltable-starter-kit-main/video-search/pixeltable.toml": "[[pixeltable.database]]\n",
 }
 
 
