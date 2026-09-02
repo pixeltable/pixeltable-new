@@ -26,6 +26,7 @@ pxt service update app.py agent
 ```
 
 `pxt service list` prints the URL. OpenAPI is at `/docs`. `/ask` needs `ANTHROPIC_API_KEY`.
+Declare, Experiment, Serve: apply, serve, then insert / `/ask` / `pxt dashboard`.
 
 Video frames, CLIP search, and image ingest:
 

@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.6.1
+
+- Require Python 3.11+ (drop 3.10 from package metadata and CI).
+- Print the Declare, Experiment, Serve loop in CLI help, next steps, and the README.
+
 ## 0.6.0
 
 - Default scaffold is `chat-agent/`: `pxt schema update app.py agent` then `pxt service update`. `--video` copies `video-search/`. `--batch` and `--serving` are gone.

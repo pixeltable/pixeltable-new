@@ -47,7 +47,11 @@ def new(
         typer.Option("--json", help="Emit machine-readable JSON output (for AI agents and scripts)."),
     ] = False,
 ) -> None:
-    """Create a new Pixeltable project from the starter kit."""
+    """Create a new Pixeltable project from the starter kit.
+
+    Declare, Experiment, Serve: `pxt schema update`, then `pxt service update`,
+    then dashboard or curl. Default TARGET is `agent`. `--video` uses `videointel`.
+    """
     if list_all:
         _run_list(json_output)
         return
@@ -149,6 +153,9 @@ def _run_rich(project: str | None, pattern: str) -> None:
 
         for step in NEXT_STEPS.get(pattern, []):
             toolkit.print(f"  [dim]$[/dim] {step}")
+
+        toolkit.print_line()
+        toolkit.print("[dim]Declare, Experiment, Serve: schema update, service update, then dashboard or curl.[/dim]")
 
         toolkit.print_line()
         toolkit.print("[dim]Files:[/dim]")
