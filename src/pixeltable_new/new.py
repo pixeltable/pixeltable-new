@@ -28,6 +28,14 @@ NEXT_STEPS: dict[str, list[str]] = {
     ],
 }
 
+TARGETS: dict[str, str] = {
+    "chat-agent": "agent",
+    "video-search": "videointel",
+}
+
+LOOP = "Declare, Experiment, Serve: pxt schema update, then pxt service update, then dashboard or curl."
+SKILL = "https://github.com/pixeltable/pixeltable-skill"
+
 SOURCE_PROJECT_NAMES: dict[str, str] = {
     "chat-agent": "chat-agent",
     "video-search": "video-search",

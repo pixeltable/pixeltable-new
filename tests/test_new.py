@@ -13,8 +13,11 @@ from typer.testing import CliRunner
 
 from pixeltable_new.cli import app
 from pixeltable_new.new import (
+    LOOP,
     NEXT_STEPS,
     PATTERNS,
+    SKILL,
+    TARGETS,
     scaffold,
     substitute_project_name,
 )
@@ -135,6 +138,7 @@ class TestCLI:
         assert "pixeltable" in text.lower()
         assert "TOML config" not in text
         assert "--video" in text
+        assert "--json" in text
         assert "--batch" not in text
         assert "--backend" not in text
         assert "--serving" not in text
@@ -147,6 +151,9 @@ class TestCLI:
         data = json.loads(result.output)
         assert data["status"] == "ok"
         assert data["pattern"] == pattern
+        assert data["target"] == TARGETS[pattern]
+        assert data["loop"] == LOOP
+        assert data["skill"] == SKILL
         assert isinstance(data["files"], list)
         assert len(data["files"]) > 0
         assert isinstance(data["next_steps"], list)
@@ -175,6 +182,10 @@ class TestCLI:
         assert "templates" not in data
         assert "chat-agent" in data["patterns"]
         assert "video-search" in data["patterns"]
+        assert data["usage"]["chat-agent"] == "uvx pixeltable-new myapp --json"
+        assert data["usage"]["video-search"] == "uvx pixeltable-new myapp --video --json"
+        assert data["loop"] == LOOP
+        assert data["skill"] == SKILL
         assert "serving" not in data["patterns"]
         assert "batch" not in data["patterns"]
 
@@ -224,9 +235,12 @@ class TestSubstituteProjectName:
 
 
 class TestReadme:
-    def test_no_hosted_pxt_service(self) -> None:
+    def test_cloud_uses_db_update(self) -> None:
         readme = pathlib.Path(__file__).resolve().parent.parent / "README.md"
         text = readme.read_text(encoding="utf-8")
-        assert "pxt service update app.py pxt://" not in text
+        assert "pxt db create" not in text
+        assert "pxt db update pxt://org:mydb" in text
+        assert "pxt schema update app.py pxt://org:mydb" in text
+        assert "pxt service update app.py pxt://org:mydb" in text
         assert "--batch" not in text
         assert "pxt service update app.py pipeline" not in text

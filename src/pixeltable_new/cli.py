@@ -8,7 +8,7 @@ from typing import Annotated
 
 import typer
 
-from pixeltable_new.new import NEXT_STEPS, scaffold
+from pixeltable_new.new import LOOP, NEXT_STEPS, SKILL, TARGETS, scaffold
 from pixeltable_new.utils.cli import get_rich_toolkit
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -85,7 +85,19 @@ def _run_list(json_output: bool) -> None:
     }
 
     if json_output:
-        print(json.dumps({"patterns": patterns_info}))
+        print(
+            json.dumps(
+                {
+                    "patterns": patterns_info,
+                    "usage": {
+                        "chat-agent": "uvx pixeltable-new myapp --json",
+                        "video-search": "uvx pixeltable-new myapp --video --json",
+                    },
+                    "loop": LOOP,
+                    "skill": SKILL,
+                }
+            )
+        )
         return
 
     with get_rich_toolkit() as toolkit:
@@ -114,8 +126,11 @@ def _run_json(project: str | None, pattern: str) -> None:
         "status": "ok",
         "project": str(dest),
         "pattern": pattern,
+        "target": TARGETS[pattern],
         "files": sorted(written),
         "next_steps": next_steps,
+        "loop": LOOP,
+        "skill": SKILL,
     }
     print(json.dumps(result))
 
@@ -155,7 +170,7 @@ def _run_rich(project: str | None, pattern: str) -> None:
             toolkit.print(f"  [dim]$[/dim] {step}")
 
         toolkit.print_line()
-        toolkit.print("[dim]Declare, Experiment, Serve: schema update, service update, then dashboard or curl.[/dim]")
+        toolkit.print(f"[dim]{LOOP}[/dim]")
 
         toolkit.print_line()
         toolkit.print("[dim]Files:[/dim]")

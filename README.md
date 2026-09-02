@@ -38,14 +38,15 @@ pxt schema update app.py videointel
 pxt service update app.py videointel
 ```
 
-Same file on Cloud:
+Same file on Cloud (`PIXELTABLE_API_KEY`, plus `[[pixeltable.database]]` with `name = 'pxt://org:mydb'`):
 
 ```bash
-pxt db create pxt://org:mydb
+pxt db update pxt://org:mydb
 pxt schema update app.py pxt://org:mydb
+pxt service update app.py pxt://org:mydb
 ```
 
-`pxt service` stays local. Browse and insert on Cloud: dashboard and recipes.
+`pxt db update` creates the hosted database or brings it up to what the project declares. `pxt service run` is local only.
 
 A project root is `pixeltable.toml` or `pyproject.toml` with `[tool.pixeltable]`. The scaffold
 includes one. If you copied files by hand, run `pxt init` first.
@@ -53,6 +54,8 @@ includes one. If you copied files by hand, run `pxt init` first.
 ```bash
 uvx pixeltable-new --list
 ```
+
+Agents: `uvx pixeltable-new myapp --json` or `uvx pixeltable-new --list --json`.
 
 Install the [Pixeltable skill](https://github.com/pixeltable/pixeltable-skill) to add tables in `app.py`.
 
