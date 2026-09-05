@@ -8,7 +8,7 @@ from typing import Annotated
 
 import typer
 
-from pixeltable_new.new import LOOP, NEXT_STEPS, NOTES, SKILL, TARGETS, scaffold
+from pixeltable_new.new import LOOP, NEXT_STEPS, NOTES, SKILL, TARGETS, scaffold, template_removed_message
 from pixeltable_new.utils.cli import get_rich_toolkit
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -57,12 +57,7 @@ def new(
         return
 
     if template:
-        msg = (
-            f"Template {template!r} is gone. Scaffold the chat agent "
-            f"(uvx pixeltable-new myapp) and add columns in app.py. "
-            f"Video: uvx pixeltable-new myapp --video. "
-            f"The pixeltable skill generates extra tables."
-        )
+        msg = template_removed_message(template)
         if json_output:
             print(json.dumps({"status": "error", "message": msg}), file=sys.stderr)
         else:

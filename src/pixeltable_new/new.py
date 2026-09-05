@@ -58,9 +58,13 @@ _REMOVED_TEMPLATES = (
 )
 
 
-def reject_template(name: str) -> None:
-    """Templates were removed. Agents write extra tables into app.py."""
-    raise ValueError(
+def template_removed_message(name: str) -> str:
+    """Guidance for someone who passed --template. Templates were removed in 0.5.0.
+
+    The CLI rejects --template before scaffold() ever runs, so this is the single
+    place the wording lives; scaffold() carries no template parameter.
+    """
+    return (
         f"Template {name!r} is gone. Scaffold the chat agent "
         f"(uvx pixeltable-new myapp) and add columns in app.py. "
         f"Video: uvx pixeltable-new myapp --video. "
@@ -153,15 +157,11 @@ def scaffold(
     project_name: str | None,
     pattern: str,
     tarball_url: str = STARTER_KIT_TARBALL,
-    template: str | None = None,
 ) -> tuple[pathlib.Path, list[str]]:
     """Scaffold a new Pixeltable project.
 
     Returns (project_path, files_written).
     """
-    if template:
-        reject_template(template)
-
     if pattern not in PATTERNS:
         raise ValueError(f"Unknown pattern {pattern!r}. Choose from: {', '.join(PATTERNS)}")
 

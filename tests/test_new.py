@@ -63,13 +63,6 @@ class TestScaffoldFunction:
         with pytest.raises(ValueError, match="Unknown pattern"):
             scaffold("badpattern", "nonexistent")
 
-    def test_scaffold_rejects_template(self, tmp_path: pathlib.Path) -> None:
-        import os
-
-        os.chdir(tmp_path)
-        with pytest.raises(ValueError, match="gone"):
-            scaffold("badtemplate", "chat-agent", template="knowledge-base")
-
     def test_scaffold_failed_extract_removes_empty_dir(
         self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -248,7 +241,10 @@ class TestCLI:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["tpl", "--template", "knowledge-base"])
         assert result.exit_code == 1
-        assert "gone" in result.output.lower() or "gone" in (result.stderr or "").lower()
+        out = (result.output + (result.stderr or "")).lower()
+        assert "gone" in out
+        assert "uvx pixeltable-new myapp" in out, "must say how to recover"
+        assert "removed names" in out, "must list the retired template names"
 
 
 class TestNextSteps:
