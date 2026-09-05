@@ -8,7 +8,7 @@ from typing import Annotated
 
 import typer
 
-from pixeltable_new.new import LOOP, NEXT_STEPS, SKILL, TARGETS, scaffold
+from pixeltable_new.new import LOOP, NEXT_STEPS, NOTES, SKILL, TARGETS, scaffold
 from pixeltable_new.utils.cli import get_rich_toolkit
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -132,6 +132,9 @@ def _run_json(project: str | None, pattern: str) -> None:
         "loop": LOOP,
         "skill": SKILL,
     }
+    note = NOTES.get(pattern)
+    if note:
+        result["note"] = note
     print(json.dumps(result))
 
 
@@ -168,6 +171,11 @@ def _run_rich(project: str | None, pattern: str) -> None:
 
         for step in NEXT_STEPS.get(pattern, []):
             toolkit.print(f"  [dim]$[/dim] {step}")
+
+        note = NOTES.get(pattern)
+        if note:
+            toolkit.print_line()
+            toolkit.print(f"[yellow]{note}[/yellow]", tag="note")
 
         toolkit.print_line()
         toolkit.print(f"[dim]{LOOP}[/dim]")

@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.6.2
+
+- Export `ANTHROPIC_API_KEY` before the first `pxt` command in the chat-agent next steps. `pxt schema update` starts the Pixeltable daemon and `pxt service update` spawns the service from it with no environment of its own, so a key exported afterwards never reaches `/ask` -- and re-running `service update` does not respawn it, because the plan is already in agreement. The previous next steps ran `schema update` first, reproducing exactly that break. `--json` gained a `note` field carrying the reason and the recovery (`pxt daemon restart`, `pxt service stop agent`, `pxt service update`).
+- Rewrite the scaffolded README's `cd`. The starter kit's README is written for the monorepo, so it said `cd chat-agent` -- a directory a scaffolded project does not have. It now points at the project name, or is dropped when scaffolding into the current directory.
+- Drop the `pxt service run` reference from the README; `pxt service update` is the serving command.
+
 ## 0.6.1
 
 - Require Python 3.11+ (drop 3.10 from package metadata and CI).

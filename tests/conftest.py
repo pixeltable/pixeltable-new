@@ -11,9 +11,11 @@ _KIT_FILES = {
     "pixeltable-starter-kit-main/chat-agent/app.py": "agent = True\n",
     "pixeltable-starter-kit-main/chat-agent/pyproject.toml": '[project]\nname = "chat-agent"\n',
     "pixeltable-starter-kit-main/chat-agent/pixeltable.toml": "[[pixeltable.database]]\n",
+    "pixeltable-starter-kit-main/chat-agent/README.md": "# Chat agent\n\n```bash\ncd chat-agent\nuv sync\n```\n",
     "pixeltable-starter-kit-main/video-search/app.py": "videointel = True\n",
     "pixeltable-starter-kit-main/video-search/pyproject.toml": '[project]\nname = "video-search"\n',
     "pixeltable-starter-kit-main/video-search/pixeltable.toml": "[[pixeltable.database]]\n",
+    "pixeltable-starter-kit-main/video-search/README.md": "# Video search\n\n```bash\ncd video-search\nuv sync\n```\n",
 }
 
 

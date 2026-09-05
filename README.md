@@ -46,7 +46,7 @@ pxt schema update app.py pxt://org:mydb
 pxt service update app.py pxt://org:mydb
 ```
 
-`pxt db update` creates the hosted database or brings it up to what the project declares. `pxt service run` is local only.
+`pxt db update` creates the hosted database or brings it up to what the project declares.
 
 A project root is `pixeltable.toml` or `pyproject.toml` with `[tool.pixeltable]`. The scaffold
 includes one. If you copied files by hand, run `pxt init` first.
