@@ -18,6 +18,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) following 
 Default is the chat agent (text insert, no API key for `/api/knowledge`):
 
 ```bash
+export ANTHROPIC_API_KEY=sk-...   # before the first pxt command; only /ask needs it
 uvx pixeltable-new myapp
 cd myapp
 uv sync
@@ -25,7 +26,13 @@ pxt schema update app.py agent
 pxt service update app.py agent
 ```
 
-`pxt service list` prints the URL. OpenAPI is at `/docs`. `/ask` needs `ANTHROPIC_API_KEY`.
+Export the key first. `pxt schema update` starts the Pixeltable daemon, `pxt service update` spawns the
+service from it, and the service inherits the daemon's environment -- so a key exported afterwards never
+reaches `/ask`, and re-running `pxt service update` will not pick it up. Recovery is `pxt daemon restart`,
+`pxt service stop agent`, `pxt service update app.py agent`.
+
+`agent` and `videointel` are catalog directories, not folders on disk.
+`pxt service list` prints the URL. OpenAPI is at `/docs`.
 Declare, Experiment, Serve: apply, serve, then insert / `/ask` / `pxt dashboard`.
 
 Video frames, CLIP search, and image ingest:
@@ -41,10 +48,14 @@ pxt service update app.py videointel
 Same file on Cloud (`PIXELTABLE_API_KEY`, plus `[[pixeltable.database]]` with `name = 'pxt://org:mydb'`):
 
 ```bash
+pxt secret set pxt://org ANTHROPIC_API_KEY=sk-...
 pxt db update pxt://org:mydb
 pxt schema update app.py pxt://org:mydb
 pxt service update app.py pxt://org:mydb
 ```
+
+The secret goes first for the same reason the local export does: the process that answers `/ask` reads it
+at request time.
 
 `pxt db update` creates the hosted database or brings it up to what the project declares.
 

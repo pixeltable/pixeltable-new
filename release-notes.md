@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.6.3
+
+- Teach the key ordering in `README.md`, not just in the CLI's next steps. 0.6.2 fixed `NEXT_STEPS`/`NOTES`, which is what the CLI prints at runtime, but the README still walked a reader into the bug: `pxt schema update` before any `export ANTHROPIC_API_KEY`. `pyproject.toml` sets `readme = "README.md"`, so that quickstart is also the PyPI project page. The Cloud block gains the matching `pxt secret set`, and the README now says `agent`/`videointel` are catalog directories rather than paths.
+- Delete the unreachable `--template` path. `cli.py` rejects `--template` before `scaffold()` runs, so `scaffold()`'s `template=` parameter and `reject_template()` were dead, and their two hand-typed messages had already drifted. The wording now lives once, in `template_removed_message()`, and the CLI test asserts the recovery text rather than just the word "gone".
+
 ## 0.6.2
 
 - Export `ANTHROPIC_API_KEY` before the first `pxt` command in the chat-agent next steps. `pxt schema update` starts the Pixeltable daemon and `pxt service update` spawns the service from it with no environment of its own, so a key exported afterwards never reaches `/ask` -- and re-running `service update` does not respawn it, because the plan is already in agreement. The previous next steps ran `schema update` first, reproducing exactly that break. `--json` gained a `note` field carrying the reason and the recovery (`pxt daemon restart`, `pxt service stop agent`, `pxt service update`).
