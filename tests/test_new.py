@@ -15,6 +15,7 @@ from pixeltable_new.cli import app
 from pixeltable_new.new import (
     LOOP,
     NEXT_STEPS,
+    NOTES,
     PATTERNS,
     SKILL,
     TARGETS,
@@ -87,6 +88,60 @@ class TestScaffoldFunction:
         with pytest.raises(RuntimeError, match="No files found"):
             scaffold("should-vanish", "chat-agent")
         assert not target.exists()
+
+
+class TestFirstRunOrdering:
+    """The key must be exported before the first pxt command.
+
+    `pxt schema update` starts the daemon; `pxt service update` spawns the service from it with
+    no env= of its own, so the service inherits the daemon's environment. A key exported after
+    the daemon started never reaches /ask, and re-running `service update` does not respawn it.
+    """
+
+    def test_chat_agent_exports_before_any_pxt_command(self) -> None:
+        steps = NEXT_STEPS["chat-agent"]
+        export = next(i for i, s in enumerate(steps) if "ANTHROPIC_API_KEY" in s)
+        first_pxt = next(i for i, s in enumerate(steps) if s.startswith("pxt "))
+        assert export < first_pxt, f"export must precede the first pxt command: {steps}"
+
+    def test_video_search_needs_no_key(self) -> None:
+        assert not any("API_KEY" in s for s in NEXT_STEPS["video-search"])
+
+    def test_chat_agent_note_explains_the_ordering(self) -> None:
+        assert "chat-agent" in NOTES
+        assert "daemon" in NOTES["chat-agent"]
+
+    def test_json_output_carries_the_note(self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["noted", "--json"])
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.stdout)
+        assert "ANTHROPIC_API_KEY" in " ".join(payload["next_steps"])
+        assert "daemon" in payload["note"]
+
+
+class TestReadmeCd:
+    """The kit README says `cd chat-agent`; a scaffolded project has no such directory."""
+
+    @pytest.mark.parametrize("pattern", PATTERNS)
+    def test_cd_points_at_the_project(
+        self, pattern: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        dest, _ = scaffold("myproj", pattern)
+        readme = (dest / "README.md").read_text()
+        assert "cd myproj" in readme
+        assert f"cd {pattern}" not in readme
+
+    @pytest.mark.parametrize("pattern", PATTERNS)
+    def test_cd_dropped_when_scaffolding_in_place(
+        self, pattern: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        dest, _ = scaffold(None, pattern)
+        readme = (dest / "README.md").read_text()
+        assert f"cd {pattern}" not in readme
+        assert "uv sync" in readme
 
 
 class TestCLI:
@@ -199,6 +254,7 @@ class TestCLI:
 class TestNextSteps:
     def test_chat_agent_uses_schema_and_service_update(self) -> None:
         assert NEXT_STEPS["chat-agent"] == [
+            "export ANTHROPIC_API_KEY=sk-...",
             "uv sync",
             "pxt schema update app.py agent",
             "pxt service update app.py agent",

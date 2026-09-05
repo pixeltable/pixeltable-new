@@ -17,15 +17,27 @@ SKIP_FILES = {"uv.lock", ".DS_Store"}
 
 NEXT_STEPS: dict[str, list[str]] = {
     "chat-agent": [
+        # Before the first pxt command, not after: see NOTES below.
+        "export ANTHROPIC_API_KEY=sk-...",
         "uv sync",
         "pxt schema update app.py agent",
         "pxt service update app.py agent",
     ],
     "video-search": [
+        # No key: CLIP embeddings run locally.
         "uv sync",
         "pxt schema update app.py videointel",
         "pxt service update app.py videointel",
     ],
+}
+
+NOTES: dict[str, str] = {
+    "chat-agent": (
+        "Export ANTHROPIC_API_KEY before the first pxt command. That command starts the "
+        "Pixeltable daemon, the service inherits the daemon's environment, and /ask reads the "
+        "key at request time -- so exporting it afterwards does not reach the running service. "
+        "Recovery: pxt daemon restart, pxt service stop agent, pxt service update app.py agent."
+    ),
 }
 
 TARGETS: dict[str, str] = {
@@ -117,6 +129,26 @@ def substitute_project_name(dest: pathlib.Path, project_name: str, source_key: s
     filepath.write_text(content)
 
 
+def rewrite_readme_cd(dest: pathlib.Path, source_key: str, project_name: str | None) -> None:
+    """Point the scaffolded README's ``cd`` at the project, not at the starter-kit directory.
+
+    The kit's README is written for someone inside the monorepo, so it says ``cd chat-agent``.
+    A scaffolded project has no such directory: the user is one level above ``project_name``,
+    or already in place when scaffolding into the current directory.
+    """
+    filepath = dest / "README.md"
+    old_name = SOURCE_PROJECT_NAMES.get(source_key)
+    if not filepath.exists() or old_name is None:
+        return
+    content = filepath.read_text()
+    if project_name:
+        content = content.replace(f"cd {old_name}\n", f"cd {project_name}\n")
+    else:
+        # Already in the project directory; the line would send them somewhere that does not exist.
+        content = content.replace(f"cd {old_name}\n", "")
+    filepath.write_text(content)
+
+
 def scaffold(
     project_name: str | None,
     pattern: str,
@@ -156,6 +188,7 @@ def scaffold(
             )
 
         substitute_project_name(dest, dest.name, pattern)
+        rewrite_readme_cd(dest, pattern, project_name)
         return dest, written
     except Exception:
         if created_dest and dest.is_dir():
